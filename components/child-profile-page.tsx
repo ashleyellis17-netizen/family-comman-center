@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
   children,
@@ -8,9 +9,15 @@ import {
   getEventsForChild,
   getTransactionsForChild,
   getRedemptionsForChild,
+  getSummerTasksForChild,
+  getActiveGroundingForChild,
+  getNextBirthday,
   rewards,
 } from '@/lib/mock-data';
 import { ChildAvatar } from '@/components/child-avatar';
+import { SectionCard } from '@/components/section-card';
+import { EmptyState } from '@/components/empty-state';
+import { colorFor } from '@/lib/people';
 import type { ChildId } from '@/lib/types';
 import {
   Check,
@@ -23,21 +30,24 @@ import {
   Gift,
   ThumbsUp,
   ThumbsDown,
-  DollarSign,
-  Sparkles,
-  ChevronRight,
+  Cake,
+  Sun,
+  Lock,
   ArrowLeft,
+  ShieldCheck,
 } from 'lucide-react';
-import Link from 'next/link';
 
 interface ChildProfilePageProps {
   childId: ChildId;
 }
 
+const todayStr = new Date().toISOString().split('T')[0];
+
 export function ChildProfilePage({ childId }: ChildProfilePageProps) {
   const child = children.find((c) => c.id === childId);
   if (!child) return null;
 
+  const c = colorFor(childId);
   const stats = getChildStats(childId);
   const todayChores = getTodayChoresForChild(childId);
   const behaviorNotes = getBehaviorForChild(childId);
@@ -45,428 +55,232 @@ export function ChildProfilePage({ childId }: ChildProfilePageProps) {
   const events = getEventsForChild(childId);
   const transactions = getTransactionsForChild(childId);
   const redemptions = getRedemptionsForChild(childId);
+  const summer = getSummerTasksForChild(childId);
+  const grounding = getActiveGroundingForChild(childId);
+  const nextBd = getNextBirthday(child.birthday);
 
-  const pendingChores = todayChores.filter((c) => !c.completed);
-  const completedChores = todayChores.filter((c) => c.completed);
-  const upcomingEvents = events
-    .filter((e) => new Date(e.date) >= new Date())
-    .slice(0, 5);
-  const recentBehavior = behaviorNotes.slice(0, 5);
-  const recentGrades = grades.slice(0, 5);
+  const summerToday = summer.filter((t) => t.dueDate === todayStr);
+  const summerDone = summer.filter((t) => t.status === 'approved');
+  const completedChores = todayChores.filter((ch) => ch.completed);
+  const pendingChores = todayChores.filter((ch) => !ch.completed);
+  const upcomingEvents = events.filter((e) => e.date >= todayStr).slice(0, 5);
+  const redeemedRewards = redemptions.map((r) => rewards.find((rw) => rw.id === r.rewardId)).filter(Boolean);
+  const availableRewards = rewards.filter((r) => r.available).slice(0, 4);
+  const allowanceEligible = !grounding || grounding.allowanceEligible;
 
-  const choreProgress = todayChores.length > 0 
-    ? (completedChores.length / todayChores.length) * 100 
-    : 100;
-
-  const gradientClasses = {
-    alex: 'from-alex via-alex-light to-alex',
-    jaxon: 'from-jaxon via-jaxon-light to-jaxon',
-    carson: 'from-carson via-carson-light to-carson',
-  };
-
-  const bgGradient = {
-    alex: 'from-alex/20 via-alex/10 to-transparent',
-    jaxon: 'from-jaxon/20 via-jaxon/10 to-transparent',
-    carson: 'from-carson/20 via-carson/10 to-transparent',
-  };
-
-  const accentClass = {
-    alex: 'bg-alex/10 border-alex/30',
-    jaxon: 'bg-jaxon/10 border-jaxon/30',
-    carson: 'bg-carson/10 border-carson/30',
-  };
-
-  const textGradient = {
-    alex: 'gradient-text-alex',
-    jaxon: 'gradient-text-jaxon',
-    carson: 'gradient-text-carson',
-  };
-
-  const iconBg = {
-    alex: 'bg-gradient-to-br from-alex to-alex-light text-alex-foreground shadow-lg shadow-alex/30',
-    jaxon: 'bg-gradient-to-br from-jaxon to-jaxon-light text-jaxon-foreground shadow-lg shadow-jaxon/30',
-    carson: 'bg-gradient-to-br from-carson to-carson-light text-carson-foreground shadow-lg shadow-carson/30',
-  };
+  const choreProgress = todayChores.length > 0 ? (completedChores.length / todayChores.length) * 100 : 100;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Back button */}
-      <Link 
-        href="/" 
-        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="text-sm font-medium">Back to Dashboard</span>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        <ArrowLeft className="h-4 w-4" /> Back to Dashboard
       </Link>
 
       {/* Header */}
-      <div className="relative rounded-3xl overflow-hidden">
-        {/* Animated gradient border */}
-        <div className={cn(
-          'absolute inset-0 bg-gradient-to-r animate-gradient',
-          gradientClasses[childId]
-        )} />
-        
-        <div className="relative m-[2px] rounded-[22px] bg-card overflow-hidden">
-          {/* Background gradient */}
-          <div className={cn(
-            'absolute inset-0 bg-gradient-to-br',
-            bgGradient[childId]
-          )} />
-          
-          {/* Decorative elements */}
-          <Sparkles className={cn(
-            'absolute top-6 right-6 w-8 h-8 opacity-30',
-            childId === 'alex' ? 'text-alex' : childId === 'jaxon' ? 'text-jaxon' : 'text-carson'
-          )} />
-          
-          <div className="relative p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center gap-6">
-              <ChildAvatar childId={childId} name={child.name} size="xl" animated />
-              <div className="flex-1">
-                <h1 className={cn('text-4xl md:text-5xl font-bold mb-1', textGradient[childId])}>
-                  {child.name}
-                </h1>
-                <p className="text-lg text-muted-foreground">Age {child.age}</p>
-                
-                {/* Progress bar */}
-                <div className="mt-4 max-w-sm">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                    <span>{"Today's Progress"}</span>
-                    <span className="font-medium text-foreground">{Math.round(choreProgress)}%</span>
-                  </div>
-                  <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
-                    <div 
-                      className={cn(
-                        'h-full rounded-full transition-all duration-500 progress-shine',
-                        `bg-gradient-to-r ${gradientClasses[childId]}`
-                      )}
-                      style={{ width: `${choreProgress}%` }}
-                    />
-                  </div>
-                </div>
+      <div className={cn('overflow-hidden rounded-3xl border bg-card', c.border)}>
+        <div className={cn('p-6 md:p-8', c.bg)}>
+          <div className="flex flex-col gap-6 md:flex-row md:items-center">
+            <ChildAvatar childId={childId} name={child.name} size="xl" animated />
+            <div className="flex-1">
+              <h1 className={cn('text-4xl font-extrabold md:text-5xl', c.gradientText)}>{child.name}</h1>
+              <div className="mt-2 flex flex-wrap gap-2 text-sm font-semibold">
+                <span className="rounded-full bg-card px-3 py-1 text-foreground shadow-sm">Age {child.age}</span>
+                <span className="rounded-full bg-card px-3 py-1 text-foreground shadow-sm">{child.grade}</span>
+                <span className="flex items-center gap-1 rounded-full bg-card px-3 py-1 text-foreground shadow-sm">
+                  <Cake className="h-3.5 w-3.5" /> {new Date(child.birthday).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </span>
+                <span className="flex items-center gap-1 rounded-full bg-card px-3 py-1 text-foreground shadow-sm">
+                  Next birthday: {nextBd.label} ({nextBd.daysUntil} days)
+                </span>
               </div>
-            </div>
-
-            {/* Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-              {[
-                { icon: Check, label: 'Chores Today', value: `${stats.choresCompletedToday}/${stats.choresDueToday}` },
-                { icon: Star, label: 'Behavior', value: `${stats.behaviorPoints >= 0 ? '+' : ''}${stats.behaviorPoints}`, isPositive: stats.behaviorPoints >= 0 },
-                { icon: TrendingUp, label: 'Grade Avg', value: `${stats.gradeAverage}%` },
-                { icon: Wallet, label: 'Balance', value: `$${stats.allowanceBalance}` },
-              ].map((stat, index) => (
-                <div 
-                  key={index}
-                  className={cn(
-                    'rounded-2xl p-4 text-center border backdrop-blur-sm hover-lift',
-                    accentClass[childId]
-                  )}
-                >
-                  <stat.icon className={cn(
-                    'w-6 h-6 mx-auto mb-2',
-                    childId === 'alex' ? 'text-alex' : childId === 'jaxon' ? 'text-jaxon' : 'text-carson'
-                  )} />
-                  <p className={cn(
-                    'text-2xl font-bold',
-                    stat.isPositive !== undefined 
-                      ? (stat.isPositive ? 'text-success' : 'text-destructive')
-                      : 'text-foreground'
-                  )}>
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
+              {grounding && (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-destructive/15 px-3 py-1.5 text-sm font-bold text-destructive">
+                  <Lock className="h-4 w-4" /> Grounded until {new Date(grounding.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </div>
-              ))}
+              )}
             </div>
+          </div>
+
+          {/* Stat tiles */}
+          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[
+              { icon: Check, label: 'Chores Today', value: `${stats.choresCompletedToday}/${stats.choresDueToday}` },
+              { icon: Star, label: 'Behavior', value: `${stats.behaviorPoints >= 0 ? '+' : ''}${stats.behaviorPoints}`, positive: stats.behaviorPoints >= 0 },
+              { icon: TrendingUp, label: 'Grade Avg', value: `${stats.gradeAverage}%` },
+              { icon: Wallet, label: 'Balance', value: `$${stats.allowanceBalance}` },
+            ].map((s, i) => (
+              <div key={i} className="rounded-2xl border border-border/50 bg-card p-4 text-center shadow-sm">
+                <s.icon className={cn('mx-auto mb-2 h-6 w-6', c.text)} />
+                <p className={cn('text-2xl font-extrabold', s.positive === false ? 'text-destructive' : 'text-foreground')}>{s.value}</p>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Chores Section */}
-        <div className="rounded-3xl glass-card overflow-hidden hover-lift">
-          <div className="p-5 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', iconBg[childId])}>
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">{"Today's Chores"}</h2>
-                <p className="text-xs text-muted-foreground">{completedChores.length} of {todayChores.length} done</p>
-              </div>
-            </div>
-            <Link href="/chores" className="flex items-center gap-1 text-sm text-primary hover:underline group">
-              View All
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          <div className="p-5 space-y-2">
-            {pendingChores.length === 0 && completedChores.length === 0 ? (
-              <div className="text-center py-8">
-                <Sparkles className={cn('w-10 h-10 mx-auto mb-3', childId === 'alex' ? 'text-alex' : childId === 'jaxon' ? 'text-jaxon' : 'text-carson')} />
-                <p className="text-muted-foreground">No chores today - enjoy!</p>
-              </div>
-            ) : (
-              <>
-                {pendingChores.map((chore) => (
-                  <div
-                    key={chore.id}
-                    className={cn('flex items-center gap-3 p-3 rounded-xl border transition-all hover:scale-[1.02]', accentClass[childId])}
-                  >
-                    <div className="w-7 h-7 rounded-full bg-muted/50 border-2 border-border" />
-                    <span className="flex-1 font-medium text-foreground">{chore.title}</span>
-                    <span className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground">{chore.points} pts</span>
-                  </div>
-                ))}
-                {completedChores.map((chore) => (
-                  <div
-                    key={chore.id}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-success/10 border border-success/20"
-                  >
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-success to-success/80 text-success-foreground flex items-center justify-center shadow-lg shadow-success/30">
-                      <Check className="w-4 h-4" />
-                    </div>
-                    <span className="flex-1 text-muted-foreground line-through">{chore.title}</span>
-                    <span className="text-xs px-2 py-1 rounded-full bg-success/20 text-success font-medium">+{chore.points} pts</span>
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Behavior Section */}
-        <div className="rounded-3xl glass-card overflow-hidden hover-lift">
-          <div className="p-5 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-warning to-warning/80 flex items-center justify-center shadow-lg shadow-warning/30">
-                <Star className="w-5 h-5 text-warning-foreground" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Recent Behavior</h2>
-                <p className="text-xs text-muted-foreground">{stats.behaviorPoints >= 0 ? '+' : ''}{stats.behaviorPoints} total points</p>
-              </div>
-            </div>
-            <Link href="/behavior" className="flex items-center gap-1 text-sm text-primary hover:underline group">
-              View All
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          <div className="p-5 space-y-2">
-            {recentBehavior.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No behavior notes yet</p>
-            ) : (
-              recentBehavior.map((note) => (
-                <div
-                  key={note.id}
-                  className={cn(
-                    'flex items-start gap-3 p-3 rounded-xl transition-all hover:scale-[1.02]',
-                    note.type === 'positive' ? 'bg-success/10 border border-success/20' : 'bg-destructive/10 border border-destructive/20'
-                  )}
-                >
-                  <div className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                    note.type === 'positive' ? 'bg-success/20' : 'bg-destructive/20'
-                  )}>
-                    {note.type === 'positive' ? (
-                      <ThumbsUp className="w-4 h-4 text-success" />
-                    ) : (
-                      <ThumbsDown className="w-4 h-4 text-destructive" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground">{note.description}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{note.createdBy} - {note.createdAt}</p>
-                  </div>
-                  <span className={cn(
-                    'text-sm font-bold px-2 py-0.5 rounded-full',
-                    note.type === 'positive' ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'
-                  )}>
-                    {note.points >= 0 ? '+' : ''}{note.points}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Grades Section */}
-        <div className="rounded-3xl glass-card overflow-hidden hover-lift">
-          <div className="p-5 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
-                <GraduationCap className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Recent Grades</h2>
-                <p className="text-xs text-muted-foreground">{stats.gradeAverage}% average</p>
-              </div>
-            </div>
-            <Link href="/grades" className="flex items-center gap-1 text-sm text-primary hover:underline group">
-              View All
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          <div className="p-5 space-y-2">
-            {recentGrades.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No grades recorded</p>
-            ) : (
-              recentGrades.map((grade) => (
-                <div key={grade.id} className={cn('flex items-center justify-between p-3 rounded-xl border transition-all hover:scale-[1.02]', accentClass[childId])}>
-                  <div>
-                    <p className="font-medium text-foreground">{grade.subject}</p>
-                    {grade.assignment && <p className="text-xs text-muted-foreground">{grade.assignment}</p>}
-                  </div>
-                  <div className="text-right">
-                    <p className={cn('text-2xl font-bold', textGradient[childId])}>{grade.letterGrade}</p>
-                    <p className="text-xs text-muted-foreground">{grade.grade}%</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Upcoming Events */}
-        <div className="rounded-3xl glass-card overflow-hidden hover-lift">
-          <div className="p-5 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', iconBg[childId])}>
-                <Calendar className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Upcoming Events</h2>
-                <p className="text-xs text-muted-foreground">{upcomingEvents.length} upcoming</p>
-              </div>
-            </div>
-            <Link href="/calendar" className="flex items-center gap-1 text-sm text-primary hover:underline group">
-              View All
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          <div className="p-5 space-y-2">
-            {upcomingEvents.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No upcoming events</p>
-            ) : (
-              upcomingEvents.map((event) => (
-                <div key={event.id} className={cn('flex items-center gap-4 p-3 rounded-xl border transition-all hover:scale-[1.02]', accentClass[childId])}>
-                  <div className={cn(
-                    'text-center min-w-[50px] rounded-xl p-2',
-                    childId === 'alex' ? 'bg-alex/20' : childId === 'jaxon' ? 'bg-jaxon/20' : 'bg-carson/20'
-                  )}>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(event.date).toLocaleDateString('en-US', { month: 'short' })}
-                    </p>
-                    <p className={cn('text-xl font-bold', textGradient[childId])}>
-                      {new Date(event.date).getDate()}
-                    </p>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">{event.title}</p>
-                    {event.time && <p className="text-xs text-muted-foreground">{event.time}</p>}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Allowance Section */}
-        <div className="rounded-3xl glass-card overflow-hidden hover-lift">
-          <div className="p-5 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', iconBg[childId])}>
-                <Wallet className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Allowance</h2>
-                <p className="text-xs text-muted-foreground">Recent transactions</p>
-              </div>
-            </div>
-            <Link href="/allowance" className="flex items-center gap-1 text-sm text-primary hover:underline group">
-              View All
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          <div className="p-5">
-            <div className="text-center mb-5 pb-5 border-b border-border/30">
-              <div className={cn('inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-2', accentClass[childId])}>
-                <DollarSign className={cn('w-4 h-4', childId === 'alex' ? 'text-alex' : childId === 'jaxon' ? 'text-jaxon' : 'text-carson')} />
-                <span className="text-xs font-medium text-muted-foreground">Current Balance</span>
-              </div>
-              <p className="text-4xl font-bold flex items-center justify-center">
-                <DollarSign className={cn('w-8 h-8', childId === 'alex' ? 'text-alex' : childId === 'jaxon' ? 'text-jaxon' : 'text-carson')} />
-                <span className={textGradient[childId]}>{stats.allowanceBalance}</span>
-              </p>
-            </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Chores */}
+        <SectionCard title="Today's Chores" subtitle={`${completedChores.length} of ${todayChores.length} done`} icon={Clock} iconClassName={c.bgSolid} href="/chores">
+          {todayChores.length === 0 ? (
+            <EmptyState icon={Check} title="No chores today" />
+          ) : (
             <div className="space-y-2">
-              {transactions.slice(0, 4).map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-muted/30 transition-colors">
-                  <span className="text-muted-foreground truncate">{tx.description}</span>
-                  <span className={cn('font-medium', tx.amount >= 0 ? 'text-success' : 'text-destructive')}>
-                    {tx.amount >= 0 ? '+' : ''}${Math.abs(tx.amount)}
+              {pendingChores.map((ch) => (
+                <div key={ch.id} className={cn('flex items-center gap-3 rounded-xl border p-3', c.border, c.bg)}>
+                  <div className="h-6 w-6 rounded-full border-2 border-border bg-card" />
+                  <span className="flex-1 font-medium text-foreground">{ch.title}</span>
+                  <span className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground">{ch.points} pts</span>
+                </div>
+              ))}
+              {completedChores.map((ch) => (
+                <div key={ch.id} className="flex items-center gap-3 rounded-xl border border-success/20 bg-success/10 p-3">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-success text-success-foreground">
+                    <Check className="h-4 w-4" />
+                  </div>
+                  <span className="flex-1 text-muted-foreground line-through">{ch.title}</span>
+                  <span className="rounded-full bg-success/20 px-2 py-0.5 text-xs font-medium text-success">+{ch.points}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+
+        {/* Summer tasks */}
+        <SectionCard title="Summer Tasks Today" subtitle={`${summerDone.length} approved overall`} icon={Sun} iconClassName="bg-carson text-carson-foreground" href="/summer-tasks">
+          {summerToday.length === 0 ? (
+            <EmptyState icon={Sun} title="No summer tasks today" />
+          ) : (
+            <div className="space-y-2">
+              {summerToday.map((t) => (
+                <div key={t.id} className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/30 p-3">
+                  <span className="flex-1 font-medium text-foreground">{t.title}</span>
+                  <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize',
+                    t.status === 'approved' ? 'bg-success/15 text-success'
+                      : t.status === 'needs-check' ? 'bg-primary/15 text-primary'
+                      : t.status === 'in-progress' ? 'bg-carson-muted text-carson'
+                      : 'bg-muted text-muted-foreground')}>
+                    {t.status.replace('-', ' ')}
                   </span>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          )}
+        </SectionCard>
 
-        {/* Rewards Section */}
-        <div className="rounded-3xl glass-card overflow-hidden hover-lift">
-          <div className="p-5 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-carson to-carson-light flex items-center justify-center shadow-lg shadow-carson/30">
-                <Gift className="w-5 h-5 text-carson-foreground" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Rewards Redeemed</h2>
-                <p className="text-xs text-muted-foreground">{stats.rewardsRedeemed} total</p>
-              </div>
+        {/* Behavior */}
+        <SectionCard title="Recent Behavior" subtitle={`${stats.behaviorPoints >= 0 ? '+' : ''}${stats.behaviorPoints} total points`} icon={Star} iconClassName="bg-warning text-warning-foreground" href="/behavior">
+          {behaviorNotes.length === 0 ? (
+            <EmptyState icon={Star} title="No behavior notes yet" />
+          ) : (
+            <div className="space-y-2">
+              {behaviorNotes.slice(0, 5).map((note) => (
+                <div key={note.id} className={cn('flex items-start gap-3 rounded-xl border p-3', note.type === 'positive' ? 'border-success/20 bg-success/10' : 'border-destructive/20 bg-destructive/10')}>
+                  <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full', note.type === 'positive' ? 'bg-success/20' : 'bg-destructive/20')}>
+                    {note.type === 'positive' ? <ThumbsUp className="h-4 w-4 text-success" /> : <ThumbsDown className="h-4 w-4 text-destructive" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-foreground">{note.description}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{note.createdBy} · {note.createdAt}</p>
+                  </div>
+                  <span className={cn('rounded-full px-2 py-0.5 text-sm font-bold', note.type === 'positive' ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive')}>
+                    {note.points >= 0 ? '+' : ''}{note.points}
+                  </span>
+                </div>
+              ))}
             </div>
-            <Link href="/rewards" className="flex items-center gap-1 text-sm text-primary hover:underline group">
-              View All
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
+          )}
+        </SectionCard>
+
+        {/* Grades */}
+        <SectionCard title="Grade Records" subtitle={`${stats.gradeAverage}% average`} icon={GraduationCap} iconClassName="bg-primary text-primary-foreground" href="/grades">
+          {grades.length === 0 ? (
+            <EmptyState icon={GraduationCap} title="No grades recorded" />
+          ) : (
+            <div className="space-y-2">
+              {grades.slice(0, 5).map((g) => (
+                <div key={g.id} className={cn('flex items-center justify-between rounded-xl border p-3', c.border, c.bg)}>
+                  <div>
+                    <p className="font-medium text-foreground">{g.subject}</p>
+                    {g.assignment && <p className="text-xs text-muted-foreground">{g.assignment}</p>}
+                  </div>
+                  <div className="text-right">
+                    <p className={cn('text-2xl font-extrabold', c.gradientText)}>{g.letterGrade}</p>
+                    <p className="text-xs text-muted-foreground">{g.grade}%</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+
+        {/* Allowance + eligibility */}
+        <SectionCard title="Allowance" subtitle="Balance & eligibility" icon={Wallet} iconClassName={c.bgSolid} href="/allowance">
+          <div className="mb-4 flex items-center justify-between rounded-2xl border border-border/50 bg-muted/30 p-4">
+            <div>
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Current Balance</p>
+              <p className={cn('text-3xl font-extrabold', c.gradientText)}>${stats.allowanceBalance}</p>
+            </div>
+            <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold', allowanceEligible ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive')}>
+              {allowanceEligible ? <ShieldCheck className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+              {allowanceEligible ? 'Eligible' : 'Locked'}
+            </span>
           </div>
-          <div className="p-5">
-            {redemptions.length === 0 ? (
-              <div className="text-center py-8">
-                <Gift className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-muted-foreground">No rewards redeemed yet</p>
+          <div className="space-y-1.5">
+            {transactions.slice(0, 4).map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between rounded-lg p-2 text-sm hover:bg-muted/30">
+                <span className="truncate text-muted-foreground">{tx.description}</span>
+                <span className={cn('font-semibold', tx.amount >= 0 ? 'text-success' : 'text-destructive')}>
+                  {tx.amount >= 0 ? '+' : ''}${Math.abs(tx.amount)}
+                </span>
               </div>
-            ) : (
-              <div className="space-y-2">
-                {redemptions.map((redemption) => {
-                  const reward = rewards.find((r) => r.id === redemption.rewardId);
-                  if (!reward) return null;
-                  return (
-                    <div
-                      key={redemption.id}
-                      className={cn(
-                        'flex items-center justify-between p-3 rounded-xl border transition-all hover:scale-[1.02]',
-                        redemption.fulfilled ? 'bg-success/10 border-success/20' : 'bg-warning/10 border-warning/20'
-                      )}
-                    >
-                      <div>
-                        <p className="font-medium text-foreground">{reward.title}</p>
-                        <p className="text-xs text-muted-foreground">{redemption.redeemedAt}</p>
-                      </div>
-                      <span className={cn(
-                        'text-xs px-3 py-1 rounded-full font-medium',
-                        redemption.fulfilled ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning-foreground'
-                      )}>
-                        {redemption.fulfilled ? 'Fulfilled' : 'Pending'}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            ))}
           </div>
-        </div>
+        </SectionCard>
+
+        {/* Rewards */}
+        <SectionCard title="Rewards" subtitle={`${redeemedRewards.length} redeemed`} icon={Gift} iconClassName="bg-carson text-carson-foreground" href="/rewards">
+          <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Available</p>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {availableRewards.map((r) => (
+              <span key={r!.id} className={cn('rounded-full border px-3 py-1.5 text-sm font-medium', c.border, c.bg)}>
+                {r!.title} · ${r!.cost}
+              </span>
+            ))}
+          </div>
+          <p className="mb-2 text-xs font-bold uppercase text-muted-foreground">Redeemed</p>
+          {redeemedRewards.length === 0 ? (
+            <p className="text-sm text-muted-foreground">None yet</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {redeemedRewards.map((r, i) => (
+                <span key={i} className="rounded-full border border-border/50 bg-muted/40 px-3 py-1.5 text-sm font-medium text-muted-foreground">{r!.title}</span>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+
+        {/* Upcoming events */}
+        <SectionCard title="Upcoming Events" subtitle={`${upcomingEvents.length} upcoming`} icon={Calendar} iconClassName={c.bgSolid} href="/calendar" className="lg:col-span-2">
+          {upcomingEvents.length === 0 ? (
+            <EmptyState icon={Calendar} title="No upcoming events" />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {upcomingEvents.map((e) => (
+                <div key={e.id} className={cn('flex items-center gap-4 rounded-xl border p-3', c.border, c.bg)}>
+                  <div className="min-w-[52px] rounded-xl bg-card p-2 text-center shadow-sm">
+                    <p className="text-xs text-muted-foreground">{new Date(e.date).toLocaleDateString('en-US', { month: 'short' })}</p>
+                    <p className={cn('text-xl font-extrabold', c.gradientText)}>{new Date(e.date).getDate()}</p>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-foreground">{e.title}</p>
+                    {e.time && <p className="text-xs text-muted-foreground">{e.time}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
       </div>
     </div>
   );

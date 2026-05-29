@@ -25,24 +25,42 @@
   --input: oklch(0.94 0.015 80);
   --ring: oklch(0.55 0.14 45);
   
-  /* Child colors - Boho playful palette */
-  /* Alex: Dusty teal/sage */
-  --alex: oklch(0.55 0.12 180);
-  --alex-light: oklch(0.75 0.08 180);
+  /* Child colors */
+  /* Alex: Blue */
+  --alex: oklch(0.55 0.16 250);
+  --alex-light: oklch(0.72 0.12 250);
   --alex-foreground: oklch(0.98 0 0);
-  --alex-muted: oklch(0.90 0.04 180);
+  --alex-muted: oklch(0.92 0.04 250);
   
-  /* Jaxon: Warm terracotta/rust */
-  --jaxon: oklch(0.58 0.15 40);
-  --jaxon-light: oklch(0.75 0.10 40);
+  /* Jaxon: Green */
+  --jaxon: oklch(0.58 0.15 150);
+  --jaxon-light: oklch(0.74 0.11 150);
   --jaxon-foreground: oklch(0.98 0 0);
-  --jaxon-muted: oklch(0.92 0.04 40);
+  --jaxon-muted: oklch(0.92 0.05 150);
   
-  /* Carson: Golden mustard/honey */
-  --carson: oklch(0.72 0.14 85);
-  --carson-light: oklch(0.85 0.10 85);
-  --carson-foreground: oklch(0.20 0.03 50);
-  --carson-muted: oklch(0.94 0.04 85);
+  /* Carson: Orange/Golden yellow */
+  --carson: oklch(0.72 0.16 70);
+  --carson-light: oklch(0.83 0.12 75);
+  --carson-foreground: oklch(0.22 0.03 50);
+  --carson-muted: oklch(0.94 0.05 75);
+  
+  /* Mom: warm neutral plum-gray */
+  --mom: oklch(0.50 0.06 330);
+  --mom-light: oklch(0.70 0.05 330);
+  --mom-foreground: oklch(0.98 0 0);
+  --mom-muted: oklch(0.93 0.02 330);
+  
+  /* Dad: slate neutral */
+  --dad: oklch(0.48 0.04 240);
+  --dad-light: oklch(0.68 0.03 240);
+  --dad-foreground: oklch(0.98 0 0);
+  --dad-muted: oklch(0.93 0.015 240);
+  
+  /* Shared family: warm taupe */
+  --family: oklch(0.55 0.05 60);
+  --family-light: oklch(0.72 0.04 60);
+  --family-foreground: oklch(0.98 0 0);
+  --family-muted: oklch(0.93 0.02 60);
   
   /* Status colors - softer boho feel */
   --success: oklch(0.60 0.14 155);
@@ -120,6 +138,18 @@
   --color-carson-light: var(--carson-light);
   --color-carson-foreground: var(--carson-foreground);
   --color-carson-muted: var(--carson-muted);
+  --color-mom: var(--mom);
+  --color-mom-light: var(--mom-light);
+  --color-mom-foreground: var(--mom-foreground);
+  --color-mom-muted: var(--mom-muted);
+  --color-dad: var(--dad);
+  --color-dad-light: var(--dad-light);
+  --color-dad-foreground: var(--dad-foreground);
+  --color-dad-muted: var(--dad-muted);
+  --color-family: var(--family);
+  --color-family-light: var(--family-light);
+  --color-family-foreground: var(--family-foreground);
+  --color-family-muted: var(--family-muted);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);

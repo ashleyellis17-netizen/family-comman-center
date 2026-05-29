@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Theveny Boys',
-  description: 'Family dashboard for Alex, Jaxon, and Carson',
+  title: 'Theveny Family Command Center',
+  description: 'Household command center for the Theveny family — calendars, chores, summer tasks, rewards, meals, and more.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -67,15 +67,15 @@ export default function RootLayout({
           <div className="absolute inset-0 boho-dots opacity-50" />
         </div>
         
-        <div className="flex flex-col min-h-screen">
-          <Navigation />
+        <Navigation />
+        <div className="flex min-h-screen flex-col lg:pl-72">
           <main className="flex-1 p-4 md:p-6 lg:p-8">
             {children}
           </main>
-          
+
           {/* Footer */}
-          <footer className="p-4 text-center text-sm text-muted-foreground/70 font-medium">
-            Theveny Boys
+          <footer className="p-4 text-center text-sm font-medium text-muted-foreground/70">
+            Theveny Family Command Center
           </footer>
         </div>
         {process.env.NODE_ENV === 'production' && <Analytics />}
