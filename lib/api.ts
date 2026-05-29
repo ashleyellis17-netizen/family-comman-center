@@ -103,6 +103,14 @@ export const updatePantryStaple = (_item: PantryItem) => ok({ success: true });
 export const getSettings = () => ok(data.appSettings);
 
 /**
+ * Returns the active data source: 'live' once a Google Sheets backend is
+ * connected, otherwise 'mock'. Pages can use this to surface a banner.
+ */
+export function getDataSourceMode(): 'live' | 'mock' {
+  return data.appSettings.connected ? 'live' : 'mock';
+}
+
+/**
  * Test the connection to the Google Apps Script Web App.
  * Returns a mock failure until a real Web App URL + token are configured.
  */
