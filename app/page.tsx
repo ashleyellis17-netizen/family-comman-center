@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { GreetingHeader } from '@/components/greeting-header';
 import { DashboardChildCard } from '@/components/dashboard-child-card';
+import { MessagesWidget } from '@/components/messages-widget';
 import { EmptyState } from '@/components/empty-state';
 import {
   children,
@@ -109,6 +110,9 @@ export default function Dashboard() {
           );
         })}
       </div>
+
+      {/* Family requests + messages */}
+      <MessagesWidget />
 
       {/* Three large child cards */}
       <section>

@@ -362,6 +362,45 @@ export interface ParentNote {
   createdAt: string;
 }
 
+// ---------------- Messages & Requests ----------------
+export type RequestStatus = 'pending' | 'approved' | 'denied' | 'later';
+
+export type QuickRequestKind =
+  | 'snack'
+  | 'juice'
+  | 'water'
+  | 'hungry'
+  | 'game-time'
+  | 'tv-time'
+  | 'tablet-time'
+  | 'outside'
+  | 'friend'
+  | 'help'
+  | 'done'
+  | 'love';
+
+export interface QuickRequestPreset {
+  kind: QuickRequestKind;
+  label: string; // short button text
+  message: string; // message body that gets sent
+  icon: string; // lucide icon key resolved in the UI
+  color: string; // person/category color token for the chip
+}
+
+export interface ChatMessage {
+  id: string;
+  from: PersonId;
+  to: PersonId;
+  text: string;
+  createdAt: string; // ISO timestamp
+  read: boolean;
+  kind: 'text' | 'request';
+  request?: {
+    kind: QuickRequestKind;
+    status: RequestStatus;
+  };
+}
+
 // ---------------- Settings ----------------
 export interface AppSettings {
   webAppUrl: string;

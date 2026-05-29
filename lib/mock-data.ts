@@ -22,6 +22,8 @@ import type {
   GoogleAccount,
   ParentNote,
   AppSettings,
+  QuickRequestPreset,
+  ChatMessage,
 } from './types';
 
 // Helper to get dates relative to today
@@ -808,3 +810,78 @@ export function getChildById(id: ChildId) {
 export function getParentById(id: 'mom' | 'dad') {
   return parents.find((p) => p.id === id);
 }
+
+// ---------------- Messages & Quick Requests ----------------
+// Tappable requests the kids can send to a parent in one touch.
+export const quickRequestPresets: QuickRequestPreset[] = [
+  { kind: 'snack', label: 'Snack', message: 'Can I have a snack, please?', icon: 'cookie', color: 'carson' },
+  { kind: 'juice', label: 'Juice', message: 'Can I have some juice, please?', icon: 'cup-soda', color: 'jaxon' },
+  { kind: 'water', label: 'Water', message: 'Can I have some water, please?', icon: 'glass-water', color: 'alex' },
+  { kind: 'hungry', label: "I'm hungry", message: "I'm hungry. When can we eat?", icon: 'utensils', color: 'carson' },
+  { kind: 'game-time', label: 'Game time', message: 'Can I play video games?', icon: 'gamepad-2', color: 'alex' },
+  { kind: 'tv-time', label: 'TV time', message: 'Can I watch TV?', icon: 'tv', color: 'jaxon' },
+  { kind: 'tablet-time', label: 'Tablet', message: 'Can I use the tablet?', icon: 'tablet', color: 'mom' },
+  { kind: 'outside', label: 'Go outside', message: 'Can I go play outside?', icon: 'tree-pine', color: 'jaxon' },
+  { kind: 'friend', label: 'Friend over', message: 'Can a friend come over?', icon: 'user-round-plus', color: 'alex' },
+  { kind: 'help', label: 'Need help', message: 'I need your help with something.', icon: 'hand', color: 'dad' },
+  { kind: 'done', label: 'All done!', message: 'I finished my chores. Can you check?', icon: 'check-check', color: 'jaxon' },
+  { kind: 'love', label: 'Love you', message: 'Love you!', icon: 'heart', color: 'mom' },
+];
+
+export function getQuickRequestPreset(kind: string) {
+  return quickRequestPresets.find((p) => p.kind === kind);
+}
+
+const minutesAgo = (mins: number) => new Date(today.getTime() - mins * 60000).toISOString();
+
+// Seed conversation history so the inbox is not empty on first load.
+export const seedMessages: ChatMessage[] = [
+  {
+    id: 'm1',
+    from: 'alex',
+    to: 'mom',
+    text: 'Can I have a snack, please?',
+    createdAt: minutesAgo(38),
+    read: true,
+    kind: 'request',
+    request: { kind: 'snack', status: 'approved' },
+  },
+  {
+    id: 'm2',
+    from: 'mom',
+    to: 'alex',
+    text: 'Yes! Grab some crackers, not candy.',
+    createdAt: minutesAgo(36),
+    read: true,
+    kind: 'text',
+  },
+  {
+    id: 'm3',
+    from: 'jaxon',
+    to: 'mom',
+    text: 'Can I play video games?',
+    createdAt: minutesAgo(14),
+    read: false,
+    kind: 'request',
+    request: { kind: 'game-time', status: 'pending' },
+  },
+  {
+    id: 'm4',
+    from: 'carson',
+    to: 'mom',
+    text: 'Can I have some juice, please?',
+    createdAt: minutesAgo(6),
+    read: false,
+    kind: 'request',
+    request: { kind: 'juice', status: 'pending' },
+  },
+  {
+    id: 'm5',
+    from: 'dad',
+    to: 'mom',
+    text: "Running 15 min late picking up Jaxon — heads up!",
+    createdAt: minutesAgo(3),
+    read: false,
+    kind: 'text',
+  },
+];

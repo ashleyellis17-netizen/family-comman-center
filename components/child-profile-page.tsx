@@ -17,6 +17,7 @@ import {
 import { ChildAvatar } from '@/components/child-avatar';
 import { SectionCard } from '@/components/section-card';
 import { EmptyState } from '@/components/empty-state';
+import { QuickRequestBar } from '@/components/quick-request-bar';
 import { colorFor } from '@/lib/people';
 import type { ChildId } from '@/lib/types';
 import {
@@ -117,6 +118,18 @@ export function ChildProfilePage({ childId }: ChildProfilePageProps) {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Quick requests to a parent */}
+      <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+        <QuickRequestBar from={childId} to="mom" title={`Ask Mom & Dad`} />
+        <p className="mt-3 text-center text-xs font-medium text-muted-foreground">
+          Tap a button to send a request, or{' '}
+          <Link href="/messages" className="font-bold text-primary hover:underline">
+            open Messages
+          </Link>{' '}
+          to chat.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

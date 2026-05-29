@@ -3,6 +3,7 @@ import { Nunito, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { Navigation } from '@/components/navigation'
+import { MessagesProvider } from '@/lib/messages-context'
 
 const nunito = Nunito({ 
   subsets: ["latin"],
@@ -53,17 +54,19 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background">
       <body className={`${nunito.variable} ${geistMono.variable} font-sans antialiased min-h-screen bg-background`}>
-        <Navigation />
-        <div className="flex min-h-screen flex-col lg:pl-72">
-          <main className="flex-1 p-4 pb-28 md:p-6 lg:p-8 lg:pb-8">
-            {children}
-          </main>
+        <MessagesProvider>
+          <Navigation />
+          <div className="flex min-h-screen flex-col lg:pl-72">
+            <main className="flex-1 p-4 pb-28 md:p-6 lg:p-8 lg:pb-8">
+              {children}
+            </main>
 
-          {/* Footer */}
-          <footer className="hidden p-4 text-center text-sm font-medium text-muted-foreground/70 lg:block">
-            Theveny Family Command Center
-          </footer>
-        </div>
+            {/* Footer */}
+            <footer className="hidden p-4 text-center text-sm font-medium text-muted-foreground/70 lg:block">
+              Theveny Family Command Center
+            </footer>
+          </div>
+        </MessagesProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

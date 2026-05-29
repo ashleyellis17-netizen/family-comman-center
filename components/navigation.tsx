@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useMessages } from '@/lib/messages-context';
 import {
   LayoutDashboard,
   Home,
+  MessageCircle,
   Users,
   CalendarDays,
   CalendarHeart,
@@ -52,6 +54,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/family-hub', label: 'Family Hub', icon: Home },
+      { href: '/messages', label: 'Messages', icon: MessageCircle },
     ],
   },
   {
@@ -114,9 +117,9 @@ const navGroups: NavGroup[] = [
 // Quick-access items for the tablet/mobile bottom bar.
 const bottomBarItems: NavItem[] = [
   { href: '/', label: 'Home', icon: LayoutDashboard },
+  { href: '/messages', label: 'Messages', icon: MessageCircle },
   { href: '/calendar', label: 'Calendar', icon: CalendarClock },
   { href: '/summer-tasks', label: 'Tasks', icon: Sun },
-  { href: '/grocery-list', label: 'Grocery', icon: ShoppingCart },
 ];
 
 function dotColor(color?: string) {
@@ -138,6 +141,8 @@ function dotColor(color?: string) {
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { currentPerson, unreadFor } = useMessages();
+  const unread = unreadFor(currentPerson);
   return (
     <nav className="flex flex-col gap-6 px-3 py-4">
       {navGroups.map((group) => (
@@ -149,6 +154,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             {group.items.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
+              const showBadge = item.href === '/messages' && unread > 0;
               return (
                 <Link
                   key={item.href}
@@ -170,7 +176,12 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                     <Icon className="h-[1.05rem] w-[1.05rem]" />
                   </span>
                   <span className="truncate">{item.label}</span>
-                  {item.color && (
+                  {showBadge && (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[0.7rem] font-extrabold text-destructive-foreground">
+                      {unread}
+                    </span>
+                  )}
+                  {item.color && !showBadge && (
                     <span className={cn('ml-auto h-2 w-2 rounded-full', dotColor(item.color))} />
                   )}
                 </Link>
@@ -217,6 +228,8 @@ function AdminButton({ onNavigate }: { onNavigate?: () => void }) {
 export function Navigation() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { currentPerson, unreadFor } = useMessages();
+  const unread = unreadFor(currentPerson);
 
   return (
     <>
@@ -263,6 +276,7 @@ export function Navigation() {
         {bottomBarItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
+          const showBadge = item.href === '/messages' && unread > 0;
           return (
             <Link
               key={item.href}
@@ -274,11 +288,16 @@ export function Navigation() {
             >
               <span
                 className={cn(
-                  'flex h-9 w-9 items-center justify-center rounded-xl transition-colors',
+                  'relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors',
                   isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground' : 'bg-transparent',
                 )}
               >
                 <Icon className="h-5 w-5" />
+                {showBadge && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[0.6rem] font-extrabold text-destructive-foreground">
+                    {unread}
+                  </span>
+                )}
               </span>
               <span>{item.label}</span>
             </Link>
