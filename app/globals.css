@@ -4,26 +4,26 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Boho Playful Theme - Warm creams, terracotta, sage, and playful accents */
-  --background: oklch(0.96 0.01 80);
-  --foreground: oklch(0.25 0.03 50);
-  --card: oklch(0.99 0.005 80);
-  --card-foreground: oklch(0.25 0.03 50);
-  --popover: oklch(0.98 0.008 80);
-  --popover-foreground: oklch(0.25 0.03 50);
-  --primary: oklch(0.55 0.14 45);
+  /* Premium Family Command Center - Light canvas, deep navy accents */
+  --background: oklch(0.972 0.004 255);
+  --foreground: oklch(0.26 0.03 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.26 0.03 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.26 0.03 260);
+  --primary: oklch(0.32 0.045 262);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.92 0.02 80);
-  --secondary-foreground: oklch(0.35 0.03 50);
-  --muted: oklch(0.93 0.015 80);
-  --muted-foreground: oklch(0.45 0.02 50);
-  --accent: oklch(0.88 0.03 100);
-  --accent-foreground: oklch(0.30 0.03 50);
-  --destructive: oklch(0.55 0.2 25);
+  --secondary: oklch(0.95 0.006 255);
+  --secondary-foreground: oklch(0.34 0.03 260);
+  --muted: oklch(0.955 0.005 255);
+  --muted-foreground: oklch(0.52 0.02 260);
+  --accent: oklch(0.94 0.012 255);
+  --accent-foreground: oklch(0.30 0.03 260);
+  --destructive: oklch(0.58 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.88 0.02 70);
-  --input: oklch(0.94 0.015 80);
-  --ring: oklch(0.55 0.14 45);
+  --border: oklch(0.91 0.008 255);
+  --input: oklch(0.93 0.008 255);
+  --ring: oklch(0.42 0.05 262);
   
   /* Child colors */
   /* Alex: Blue */
@@ -74,15 +74,16 @@
   --chart-4: oklch(0.65 0.12 320);
   --chart-5: oklch(0.60 0.10 280);
   
-  --radius: 1.25rem;
-  --sidebar: oklch(0.97 0.01 80);
-  --sidebar-foreground: oklch(0.25 0.03 50);
-  --sidebar-primary: oklch(0.55 0.14 45);
+  --radius: 1.1rem;
+  /* Deep navy sidebar */
+  --sidebar: oklch(0.23 0.035 262);
+  --sidebar-foreground: oklch(0.86 0.015 260);
+  --sidebar-primary: oklch(0.55 0.16 250);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.92 0.02 80);
-  --sidebar-accent-foreground: oklch(0.30 0.03 50);
-  --sidebar-border: oklch(0.88 0.02 70);
-  --sidebar-ring: oklch(0.55 0.14 45);
+  --sidebar-accent: oklch(0.30 0.04 262);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(0.34 0.035 262);
+  --sidebar-ring: oklch(0.55 0.16 250);
 }
 
 @theme inline {
@@ -270,28 +271,23 @@
   background-size: 200% 200%;
 }
 
-/* Boho card effect - warm paper texture feel */
+/* Premium card - clean white with soft shadow */
 .boho-card {
-  background: linear-gradient(
-    145deg,
-    rgba(255, 253, 250, 0.95) 0%,
-    rgba(255, 248, 240, 0.9) 100%
-  );
-  box-shadow: 
-    0 4px 6px -1px rgba(180, 140, 100, 0.08),
-    0 2px 4px -1px rgba(180, 140, 100, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(200, 170, 130, 0.15);
+  background: var(--card);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px -12px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--border);
 }
 
-/* Playful decorative dots pattern */
+/* Subtle dot grid for hero sections */
 .boho-dots {
   background-image: radial-gradient(
     circle at 1px 1px,
-    rgba(180, 140, 100, 0.1) 1px,
+    rgba(30, 41, 59, 0.06) 1px,
     transparent 0
   );
-  background-size: 20px 20px;
+  background-size: 22px 22px;
 }
 
 /* Glow effects for child colors - softer for boho */
@@ -313,10 +309,10 @@
 }
 
 .hover-lift:hover {
-  transform: translateY(-4px) rotate(0.5deg);
-  box-shadow: 
-    0 12px 35px -10px rgba(180, 140, 100, 0.2),
-    0 4px 15px -5px rgba(180, 140, 100, 0.1);
+  transform: translateY(-3px);
+  box-shadow:
+    0 18px 40px -16px rgba(15, 23, 42, 0.22),
+    0 6px 16px -8px rgba(15, 23, 42, 0.1);
 }
 
 /* Gradient text - warmer boho tones */
@@ -392,7 +388,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--border) 0%, rgba(200, 170, 130, 0.5) 100%);
+  background: oklch(0.82 0.01 255);
   border-radius: 8px;
   border: 2px solid var(--muted);
 }

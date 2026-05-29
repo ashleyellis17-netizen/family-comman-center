@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   Home,
@@ -22,7 +21,6 @@ import {
   RotateCcw,
   Gift,
   ShoppingCart,
-  Heart as HeartIcon,
   Sparkles,
   UtensilsCrossed,
   CalendarRange,
@@ -32,6 +30,7 @@ import {
   Plug,
   Menu,
   X,
+  CalendarClock,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -104,39 +103,46 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: 'Parents',
+    label: 'Settings',
     items: [
-      { href: '/admin', label: 'Parent Admin', icon: Shield },
       { href: '/settings', label: 'Google Accounts', icon: Settings },
       { href: '/data-connection', label: 'Data Connection', icon: Plug },
     ],
   },
 ];
 
-function activeClasses(color?: string) {
+// Quick-access items for the tablet/mobile bottom bar.
+const bottomBarItems: NavItem[] = [
+  { href: '/', label: 'Home', icon: LayoutDashboard },
+  { href: '/calendar', label: 'Calendar', icon: CalendarClock },
+  { href: '/summer-tasks', label: 'Tasks', icon: Sun },
+  { href: '/grocery-list', label: 'Grocery', icon: ShoppingCart },
+];
+
+function dotColor(color?: string) {
   switch (color) {
     case 'alex':
-      return 'bg-alex text-alex-foreground shadow-md shadow-alex/25';
+      return 'bg-alex';
     case 'jaxon':
-      return 'bg-jaxon text-jaxon-foreground shadow-md shadow-jaxon/25';
+      return 'bg-jaxon';
     case 'carson':
-      return 'bg-carson text-carson-foreground shadow-md shadow-carson/25';
+      return 'bg-carson';
     case 'mom':
-      return 'bg-mom text-mom-foreground shadow-md shadow-mom/25';
+      return 'bg-mom-light';
     case 'dad':
-      return 'bg-dad text-dad-foreground shadow-md shadow-dad/25';
+      return 'bg-dad-light';
     default:
-      return 'bg-primary text-primary-foreground shadow-md shadow-primary/25';
+      return 'bg-sidebar-primary';
   }
 }
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <nav className="flex flex-col gap-5 p-4">
+    <nav className="flex flex-col gap-6 px-3 py-4">
       {navGroups.map((group) => (
         <div key={group.label}>
-          <p className="px-3 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
+          <p className="px-3 pb-2 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-sidebar-foreground/45">
             {group.label}
           </p>
           <div className="flex flex-col gap-1">
@@ -149,14 +155,24 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   className={cn(
-                    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all touch-target',
+                    'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.95rem] font-semibold transition-all',
                     isActive
-                      ? activeClasses(item.color)
-                      : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                      ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
+                      : 'text-sidebar-foreground/75 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground',
                   )}
                 >
-                  <Icon className="h-5 w-5 shrink-0" />
+                  <span
+                    className={cn(
+                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+                      isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground' : 'bg-sidebar-accent/50 text-sidebar-foreground/70 group-hover:bg-sidebar-accent',
+                    )}
+                  >
+                    <Icon className="h-[1.05rem] w-[1.05rem]" />
+                  </span>
                   <span className="truncate">{item.label}</span>
+                  {item.color && (
+                    <span className={cn('ml-auto h-2 w-2 rounded-full', dotColor(item.color))} />
+                  )}
                 </Link>
               );
             })}
@@ -170,52 +186,115 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 function Brand() {
   return (
     <Link href="/" className="group flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-alex via-jaxon to-carson shadow-lg transition-transform group-hover:scale-105">
-        <HeartIcon className="h-5 w-5 fill-white/50 text-white" />
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-alex via-jaxon to-carson shadow-lg shadow-black/20 transition-transform group-hover:scale-105">
+        <Home className="h-5 w-5 text-white" />
       </div>
       <div>
-        <h1 className="text-base font-extrabold leading-tight tracking-tight text-foreground">Theveny Family</h1>
-        <p className="text-xs font-medium text-muted-foreground">Command Center</p>
+        <h1 className="text-[0.95rem] font-extrabold leading-tight tracking-tight text-sidebar-accent-foreground">
+          Theveny Family
+        </h1>
+        <p className="text-xs font-medium text-sidebar-foreground/55">Command Center</p>
       </div>
+    </Link>
+  );
+}
+
+function AdminButton({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <Link
+      href="/admin"
+      onClick={onNavigate}
+      className="flex items-center gap-3 rounded-xl bg-sidebar-primary px-3 py-3 font-bold text-sidebar-primary-foreground shadow-md shadow-black/20 transition-transform hover:scale-[1.02]"
+    >
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
+        <Shield className="h-[1.05rem] w-[1.05rem]" />
+      </span>
+      <span className="text-[0.95rem]">Parent Admin Mode</span>
     </Link>
   );
 }
 
 export function Navigation() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-border/50 bg-card/80 backdrop-blur-sm lg:flex">
-        <div className="border-b border-border/50 p-5">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col bg-sidebar text-sidebar-foreground lg:flex">
+        <div className="border-b border-sidebar-border/60 p-5">
           <Brand />
         </div>
         <div className="flex-1 overflow-y-auto">
           <NavLinks />
         </div>
+        <div className="border-t border-sidebar-border/60 p-3">
+          <AdminButton />
+        </div>
       </aside>
 
-      {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border/50 bg-card/90 p-4 backdrop-blur-sm lg:hidden">
+      {/* Mobile / tablet top bar */}
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-sidebar-border/60 bg-sidebar px-4 py-3 text-sidebar-foreground lg:hidden">
         <Brand />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="touch-target rounded-xl"
+        <button
+          type="button"
+          className="flex h-12 w-12 items-center justify-center rounded-xl bg-sidebar-accent/60 text-sidebar-accent-foreground"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
+        </button>
       </header>
 
       {/* Mobile drawer */}
       {open && (
-        <div className="fixed inset-0 top-[73px] z-40 overflow-y-auto bg-background/98 backdrop-blur-sm lg:hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          <NavLinks onNavigate={() => setOpen(false)} />
+        <div className="fixed inset-0 top-[68px] z-40 flex flex-col bg-sidebar text-sidebar-foreground lg:hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex-1 overflow-y-auto">
+            <NavLinks onNavigate={() => setOpen(false)} />
+          </div>
+          <div className="border-t border-sidebar-border/60 p-3">
+            <AdminButton onNavigate={() => setOpen(false)} />
+          </div>
         </div>
       )}
+
+      {/* Bottom tab bar (tablet/mobile) */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch justify-around border-t border-sidebar-border/60 bg-sidebar px-2 pb-[env(safe-area-inset-bottom)] text-sidebar-foreground lg:hidden">
+        {bottomBarItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-semibold transition-colors',
+                isActive ? 'text-sidebar-primary-foreground' : 'text-sidebar-foreground/60',
+              )}
+            >
+              <span
+                className={cn(
+                  'flex h-9 w-9 items-center justify-center rounded-xl transition-colors',
+                  isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground' : 'bg-transparent',
+                )}
+              >
+                <Icon className="h-5 w-5" />
+              </span>
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-semibold text-sidebar-foreground/60"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl">
+            <Menu className="h-5 w-5" />
+          </span>
+          <span>More</span>
+        </button>
+      </nav>
     </>
   );
 }

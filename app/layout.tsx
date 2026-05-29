@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#f5f0e8',
+  themeColor: '#1c2540',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -52,29 +52,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-background">
-      <body className={`${nunito.variable} ${geistMono.variable} font-sans antialiased min-h-screen`}>
-        {/* Boho background pattern */}
-        <div className="fixed inset-0 -z-10 overflow-hidden">
-          {/* Warm gradient base */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-50/50 via-background to-orange-50/30" />
-          
-          {/* Decorative circles */}
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-alex/10 to-transparent rounded-full blur-3xl" />
-          <div className="absolute top-1/3 -left-24 w-80 h-80 bg-gradient-to-br from-jaxon/10 to-transparent rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 right-1/4 w-72 h-72 bg-gradient-to-br from-carson/10 to-transparent rounded-full blur-3xl" />
-          
-          {/* Subtle dot pattern */}
-          <div className="absolute inset-0 boho-dots opacity-50" />
-        </div>
-        
+      <body className={`${nunito.variable} ${geistMono.variable} font-sans antialiased min-h-screen bg-background`}>
         <Navigation />
         <div className="flex min-h-screen flex-col lg:pl-72">
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
+          <main className="flex-1 p-4 pb-28 md:p-6 lg:p-8 lg:pb-8">
             {children}
           </main>
 
           {/* Footer */}
-          <footer className="p-4 text-center text-sm font-medium text-muted-foreground/70">
+          <footer className="hidden p-4 text-center text-sm font-medium text-muted-foreground/70 lg:block">
             Theveny Family Command Center
           </footer>
         </div>
