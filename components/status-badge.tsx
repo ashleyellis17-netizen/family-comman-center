@@ -23,10 +23,23 @@ const statusStyles: Record<string, string> = {
   Resolved: 'bg-success/15 text-success border-success/30',
   Pending: 'bg-warning/15 text-warning-foreground border-warning/30',
   Rejected: 'bg-destructive/15 text-destructive border-destructive/30',
+  Redo: 'bg-destructive/15 text-destructive border-destructive/30',
   // Priorities
   High: 'bg-destructive/15 text-destructive border-destructive/30',
   Medium: 'bg-warning/15 text-warning-foreground border-warning/30',
   Low: 'bg-muted text-muted-foreground border-border',
+  // Mom work modes
+  Available: 'bg-success/15 text-success border-success/30',
+  'Quiet Time': 'bg-primary/15 text-primary border-primary/30',
+  'Do Not Interrupt': 'bg-destructive/15 text-destructive border-destructive/30',
+  'Lunch Break': 'bg-warning/15 text-warning-foreground border-warning/30',
+  'Done Working': 'bg-success/15 text-success border-success/30',
+  // Allowance / restriction labels
+  Eligible: 'bg-success/15 text-success border-success/30',
+  'Allowance Locked': 'bg-destructive/15 text-destructive border-destructive/30',
+  'Parent Override': 'bg-primary/15 text-primary border-primary/30',
+  'Electronics Locked': 'bg-destructive/15 text-destructive border-destructive/30',
+  'Game Time Locked': 'bg-destructive/15 text-destructive border-destructive/30',
 };
 
 export function StatusBadge({ status, className }: { status: string; className?: string }) {

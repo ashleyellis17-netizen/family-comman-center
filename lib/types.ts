@@ -189,7 +189,8 @@ export interface ApprovalItem {
   title: string;
   detail?: string;
   submittedAt: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  submittedTime?: string;
+  status: 'Pending' | 'Approved' | 'Redo' | 'Excused';
 }
 
 // ----- Grocery & Meals -----
@@ -284,6 +285,29 @@ export interface ParentReminder {
   text: string;
   dueDate?: string;
   done: boolean;
+}
+
+// ----- Mom Work Mode -----
+
+export type WorkMode =
+  | 'Available'
+  | 'Quiet Time'
+  | 'Do Not Interrupt'
+  | 'Lunch Break'
+  | 'Done Working';
+
+export interface WorkStatus {
+  mode: WorkMode;
+  until?: string; // human-readable e.g. "1:00 PM"
+  note?: string;
+}
+
+export interface AskMomLaterItem {
+  id: string;
+  childId: ChildId;
+  question: string;
+  createdAt: string;
+  answered: boolean;
 }
 
 // For Google Sheets API integration later

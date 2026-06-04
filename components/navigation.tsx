@@ -39,33 +39,23 @@ type NavGroup = { title: string; items: NavItem[] };
 
 const navGroups: NavGroup[] = [
   {
-    title: 'Overview',
+    title: 'Family',
     items: [
       { href: '/', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/family-hub', label: 'Family Hub', icon: Home },
+      { href: '/calendar', label: 'Shared Calendar', icon: Calendar },
+      { href: '/mom', label: 'Mom', icon: UserCog },
+      { href: '/dad', label: 'Dad', icon: UserCog },
     ],
   },
   {
-    title: 'The Boys',
+    title: 'Kids',
     items: [
       { href: '/alex', label: 'Alex', icon: User, color: 'alex' },
       { href: '/jaxon', label: 'Jaxon', icon: User, color: 'jaxon' },
       { href: '/carson', label: 'Carson', icon: User, color: 'carson' },
-    ],
-  },
-  {
-    title: 'Parents',
-    items: [
-      { href: '/mom', label: 'Mom Profile', icon: UserCog },
-      { href: '/dad', label: 'Dad Profile', icon: UserCog },
-    ],
-  },
-  {
-    title: 'Daily',
-    items: [
       { href: '/chores', label: 'Chores', icon: ListTodo },
       { href: '/behavior', label: 'Behavior', icon: Star },
-      { href: '/calendar', label: 'Calendar', icon: Calendar },
       { href: '/grades', label: 'Grades', icon: GraduationCap },
       { href: '/allowance', label: 'Allowance', icon: Wallet },
       { href: '/rewards', label: 'Rewards', icon: Gift },
@@ -92,11 +82,11 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: 'Setup',
+    title: 'Settings',
     items: [
       { href: '/google-accounts', label: 'Google Accounts', icon: Mail },
       { href: '/data-connection', label: 'Data Connection', icon: Database },
-      { href: '/admin', label: 'Admin', icon: Shield },
+      { href: '/admin', label: 'Parent Admin', icon: Shield },
     ],
   },
 ];

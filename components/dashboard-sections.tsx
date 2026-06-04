@@ -14,6 +14,11 @@ import {
   isChildGrounded,
   getActiveGroundingForChild,
   getChildStats,
+  getUnlockPathForChild,
+  getAllowanceStatusForChild,
+  momWorkStatus,
+  momWorkRules,
+  getAskMomLater,
 } from '@/lib/mock-data';
 import {
   Sun,
@@ -25,6 +30,17 @@ import {
   Lock,
   Briefcase,
   Users,
+  Trophy,
+  Gamepad2,
+  Tablet,
+  TreePine,
+  Sparkles,
+  CheckCircle2,
+  Volume2,
+  PhoneOff,
+  Coffee,
+  CircleCheck,
+  HelpCircle,
 } from 'lucide-react';
 
 function formatShort(date: string) {
@@ -35,13 +51,19 @@ export function TodayFamilyOverview() {
   const totalChores = children.reduce((s, c) => s + getChildStats(c.id).choresDueToday, 0);
   const doneChores = children.reduce((s, c) => s + getChildStats(c.id).choresCompletedToday, 0);
   const pending = getPendingApprovals().length;
-  const grounded = children.filter((c) => isChildGrounded(c.id)).length;
+  const groundedKids = children.filter((c) => isChildGrounded(c.id));
+  const groundedValue =
+    groundedKids.length === 0
+      ? 'None'
+      : groundedKids.length === 1
+      ? groundedKids[0].name
+      : `${groundedKids.length} kids`;
 
   const tiles = [
     { label: "Chores Done", value: `${doneChores}/${totalChores}`, icon: Sun, color: 'from-carson to-carson-light text-carson-foreground' },
     { label: 'Need Approval', value: pending, icon: ClipboardCheck, color: 'from-primary to-primary/80 text-primary-foreground' },
     { label: 'Grocery Items', value: groceryItems.filter((g) => !g.purchased).length, icon: ShoppingCart, color: 'from-alex to-alex-light text-white' },
-    { label: 'Grounded', value: grounded, icon: Lock, color: 'from-jaxon to-jaxon-light text-white' },
+    { label: groundedKids.length > 0 ? 'Grounded' : 'All Eligible', value: groundedValue, icon: Lock, color: 'from-jaxon to-jaxon-light text-white' },
   ];
 
   return (
@@ -194,30 +216,189 @@ export function TonightsDinner() {
 export function AllowanceGroundingAlerts() {
   const grounded = children.filter((c) => isChildGrounded(c.id));
   return (
-    <SectionCard title="Allowance & Grounding Alerts" icon={AlertTriangle} iconClassName="from-jaxon to-jaxon-light text-white" href="/grounding">
+    <SectionCard title="Grounding & Eligibility" subtitle="Who's grounded and what's locked" icon={AlertTriangle} iconClassName="from-jaxon to-jaxon-light text-white" href="/grounding">
       {grounded.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-4">No active grounding. All allowances eligible.</p>
+        <p className="text-sm text-muted-foreground text-center py-4">No active grounding. All kids are eligible.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {grounded.map((c) => {
             const g = getActiveGroundingForChild(c.id)!;
+            const accent = c.id === 'alex' ? 'bg-alex-muted text-alex' : c.id === 'jaxon' ? 'bg-jaxon-muted text-jaxon' : 'bg-carson-muted text-carson';
+            const allowanceStatus = getAllowanceStatusForChild(c.id);
+            const restrictions: string[] = [];
+            if (!g.electronicsAllowed) restrictions.push('Electronics Locked');
+            if (!g.rewardsAllowed) restrictions.push('Game Time Locked');
+            if (!g.allowanceEligible) restrictions.push('Allowance Locked');
+            if (g.earnBackAvailable) restrictions.push('Earn Back Available');
             return (
-              <li key={c.id} className="p-3 rounded-2xl bg-destructive/10 border border-destructive/20">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-bold text-foreground">{c.name}</span>
+              <li key={c.id} className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center text-base font-extrabold shrink-0', accent)}>
+                      {c.avatar}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-foreground truncate">{c.name} is grounded</p>
+                      <p className="text-xs text-muted-foreground truncate">{g.reason}</p>
+                    </div>
+                  </div>
                   <StatusBadge status={g.status} />
                 </div>
-                <p className="text-xs text-muted-foreground">{g.reason}</p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {!g.allowanceEligible && <span className="text-xs font-semibold text-destructive">Allowance Locked</span>}
-                  {!g.electronicsAllowed && <span className="text-xs font-semibold text-destructive">Electronics Blocked</span>}
-                  {!g.rewardsAllowed && <span className="text-xs font-semibold text-destructive">Rewards Blocked</span>}
+
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs font-semibold text-muted-foreground">Allowance:</span>
+                  <StatusBadge status={allowanceStatus} />
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {restrictions.map((r) => (
+                    <StatusBadge key={r} status={r} />
+                  ))}
                 </div>
               </li>
             );
           })}
         </ul>
       )}
+    </SectionCard>
+  );
+}
+
+const rewardIcons: Record<string, React.ElementType> = {
+  'Game Time': Gamepad2,
+  'Tablet/Electronics Time': Tablet,
+  'Go Outside': TreePine,
+  'Inflatable Time': Sparkles,
+  'TV/Movie Time': Tablet,
+  'Special Snack': Sparkles,
+  'Stay Up 15 Minutes Later': Sparkles,
+};
+
+export function TodaysUnlockPath() {
+  return (
+    <SectionCard
+      title="Today's Unlock Path"
+      subtitle="Each child's reward progress"
+      icon={Trophy}
+      iconClassName="from-carson to-carson-light text-carson-foreground"
+      href="/reward-unlock"
+    >
+      <ul className="space-y-3">
+        {children.map((c) => {
+          const path = getUnlockPathForChild(c.id);
+          const bar = c.id === 'alex' ? 'bg-alex' : c.id === 'jaxon' ? 'bg-jaxon' : 'bg-carson';
+          const accent = c.id === 'alex' ? 'bg-alex-muted text-alex' : c.id === 'jaxon' ? 'bg-jaxon-muted text-jaxon' : 'bg-carson-muted text-carson';
+          if (!path) {
+            return (
+              <li key={c.id} className="p-3 rounded-2xl bg-muted/40 text-sm text-muted-foreground">
+                {c.name}: no rewards set up
+              </li>
+            );
+          }
+          const RewardIcon = rewardIcons[path.title] ?? Trophy;
+          return (
+            <li key={c.id} className="p-3 rounded-2xl bg-muted/40">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center text-sm font-extrabold shrink-0', accent)}>
+                    {c.avatar}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-foreground leading-tight">{c.name}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                      <RewardIcon className="w-3 h-3 shrink-0" />
+                      Working toward {path.title}
+                    </p>
+                  </div>
+                </div>
+                <StatusBadge status={path.state} />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
+                  <div className={cn('h-full rounded-full transition-all', bar)} style={{ width: `${path.percent}%` }} />
+                </div>
+                <span className="text-xs font-bold text-foreground shrink-0">
+                  {path.completedTasks}/{path.requiredTasks} tasks
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </SectionCard>
+  );
+}
+
+const workModeIcons: Record<string, React.ElementType> = {
+  Available: CheckCircle2,
+  'Quiet Time': Volume2,
+  'Do Not Interrupt': PhoneOff,
+  'Lunch Break': Coffee,
+  'Done Working': CircleCheck,
+};
+
+export function MomIsWorking() {
+  const status = momWorkStatus;
+  const ModeIcon = workModeIcons[status.mode] ?? Briefcase;
+  const askLater = getAskMomLater();
+  const mom = parents.find((p) => p.id === 'mom');
+
+  return (
+    <SectionCard title="Mom Is Working" subtitle="Current work mode & house rules" icon={Briefcase}>
+      <div className="space-y-4">
+        {/* Current mode */}
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/40">
+          <div className="w-11 h-11 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0">
+            <ModeIcon className="w-6 h-6 text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <StatusBadge status={status.mode} />
+              {status.until && <span className="text-xs text-muted-foreground">until {status.until}</span>}
+            </div>
+            {status.note && <p className="text-xs text-muted-foreground mt-1">{status.note}</p>}
+          </div>
+        </div>
+
+        {/* Quick rules */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Quick Rules</p>
+          <ul className="space-y-1.5">
+            {momWorkRules.map((rule) => (
+              <li key={rule} className="flex items-start gap-2 text-sm text-foreground">
+                <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                <span>{rule}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Ask Mom Later */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Ask {mom?.name ?? 'Mom'} Later</p>
+            <span className="text-xs text-muted-foreground">{askLater.length} waiting</span>
+          </div>
+          {askLater.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing in the queue.</p>
+          ) : (
+            <ul className="space-y-2">
+              {askLater.map((q) => {
+                const child = children.find((c) => c.id === q.childId);
+                return (
+                  <li key={q.id} className="flex items-start gap-2 p-2.5 rounded-xl bg-muted/40">
+                    <HelpCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-sm text-foreground">{q.question}</p>
+                      <p className="text-xs text-muted-foreground">{child?.name}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
     </SectionCard>
   );
 }

@@ -9,6 +9,8 @@ import {
   GroceryQuickView,
   TonightsDinner,
   AllowanceGroundingAlerts,
+  TodaysUnlockPath,
+  MomIsWorking,
 } from '@/components/dashboard-sections';
 import { Calendar, Sun, Moon, Heart } from 'lucide-react';
 
@@ -25,7 +27,7 @@ export default function Dashboard() {
   const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 overflow-x-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div className="space-y-2">
@@ -62,11 +64,23 @@ export default function Dashboard() {
           <Heart className="w-5 h-5 text-jaxon fill-jaxon/30" />
           <h2 className="text-xl font-extrabold text-foreground">The Boys</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <ChildQuickCard childId="alex" />
-          <ChildQuickCard childId="jaxon" />
-          <ChildQuickCard childId="carson" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+          <div className="min-w-0">
+            <ChildQuickCard childId="alex" />
+          </div>
+          <div className="min-w-0">
+            <ChildQuickCard childId="jaxon" />
+          </div>
+          <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+            <ChildQuickCard childId="carson" />
+          </div>
         </div>
+      </section>
+
+      {/* Today's Unlock Path + Mom Is Working */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TodaysUnlockPath />
+        <MomIsWorking />
       </section>
 
       {/* Calendar highlights + week calendar */}

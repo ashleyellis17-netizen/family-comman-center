@@ -14,6 +14,8 @@ import {
   getPendingApprovals,
   getSummerProgressForChild,
   getChildStats,
+  getMealForToday,
+  getEventsForChild,
 } from '@/lib/mock-data';
 import {
   Home,
@@ -25,6 +27,7 @@ import {
   ListTodo,
   Trophy,
   ClipboardCheck,
+  CalendarClock,
 } from 'lucide-react';
 
 function formatShort(date: string) {
@@ -32,12 +35,20 @@ function formatShort(date: string) {
 }
 
 export default function FamilyHubPage() {
-  const allEvents = [...familyEvents, ...parentEvents]
-    .slice()
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(0, 6);
   const pending = getPendingApprovals();
   const unpurchased = groceryItems.filter((g) => !g.purchased);
+  const meal = getMealForToday();
+
+  // Upcoming events grouped by person
+  const sortByDate = (a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date);
+  const personGroups = [
+    { key: 'mom', label: 'Mom', events: parentEvents.filter((e) => e.parentId === 'mom').slice().sort(sortByDate), color: 'text-primary' },
+    { key: 'dad', label: 'Dad', events: parentEvents.filter((e) => e.parentId === 'dad').slice().sort(sortByDate), color: 'text-alex' },
+    { key: 'alex', label: 'Alex', events: getEventsForChild('alex').slice().sort(sortByDate), color: 'text-alex' },
+    { key: 'jaxon', label: 'Jaxon', events: getEventsForChild('jaxon').slice().sort(sortByDate), color: 'text-jaxon' },
+    { key: 'carson', label: 'Carson', events: getEventsForChild('carson').slice().sort(sortByDate), color: 'text-carson' },
+    { key: 'all', label: 'All / Family', events: familyEvents.slice().sort(sortByDate), color: 'text-carson' },
+  ];
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -70,16 +81,44 @@ export default function FamilyHubPage() {
           )}
         </SectionCard>
 
-        {/* Upcoming family events (mixed) */}
-        <SectionCard title="Upcoming Events" subtitle="Family and parents" icon={Users} href="/calendar">
-          <ul className="space-y-2">
-            {allEvents.map((e) => (
-              <li key={e.id} className="flex items-center justify-between gap-3 text-sm p-3 rounded-2xl bg-muted/40">
-                <span className="text-foreground truncate">{e.title}</span>
-                <span className="text-muted-foreground shrink-0">{e.time ?? formatShort(e.date)}</span>
-              </li>
+        {/* Tonight's dinner */}
+        <SectionCard title="Tonight's Dinner" subtitle="From the weekly meal plan" icon={Utensils} iconClassName="from-jaxon to-jaxon-light text-white" href="/meal-plan">
+          {meal?.dinner ? (
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-jaxon-muted flex items-center justify-center shrink-0">
+                <Utensils className="w-7 h-7 text-jaxon" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xl font-extrabold text-foreground truncate">{meal.dinner}</p>
+                <p className="text-sm text-muted-foreground">{meal.day}{meal.helper ? ` · Helper: ${meal.helper}` : ''}</p>
+              </div>
+            </div>
+          ) : (
+            <EmptyState title="No dinner planned for today" icon={Utensils} />
+          )}
+        </SectionCard>
+
+        {/* Upcoming events by person */}
+        <SectionCard title="Upcoming Events" subtitle="Mom, Dad, the kids & family" icon={CalendarClock} href="/calendar" className="lg:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {personGroups.map((group) => (
+              <div key={group.key} className="rounded-2xl bg-muted/40 p-3">
+                <p className={cn('text-sm font-bold mb-2', group.color)}>{group.label}</p>
+                {group.events.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Nothing scheduled</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {group.events.slice(0, 3).map((e) => (
+                      <li key={e.id} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-foreground truncate">{e.title}</span>
+                        <span className="text-muted-foreground shrink-0">{e.time ?? formatShort(e.date)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             ))}
-          </ul>
+          </div>
         </SectionCard>
 
         {/* Parent notes */}

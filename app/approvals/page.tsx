@@ -7,16 +7,20 @@ import { StatusBadge } from '@/components/status-badge';
 import { EmptyState } from '@/components/state-views';
 import { children, approvalQueue as initialQueue } from '@/lib/mock-data';
 import type { ApprovalItem } from '@/lib/types';
-import { ClipboardCheck, Check, X } from 'lucide-react';
+import { ClipboardCheck, Check, RotateCcw, CircleSlash, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const filters = ['Pending', 'Approved', 'Rejected'] as const;
+const filters = ['Pending', 'Approved', 'Redo', 'Excused'] as const;
+
+function formatShort(date: string) {
+  return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 export default function ApprovalsPage() {
   const [queue, setQueue] = useState<ApprovalItem[]>(initialQueue);
   const [filter, setFilter] = useState<(typeof filters)[number]>('Pending');
 
-  const decide = (id: string, status: 'Approved' | 'Rejected') =>
+  const decide = (id: string, status: 'Approved' | 'Redo' | 'Excused') =>
     setQueue((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
 
   const visible = queue.filter((a) => a.status === filter);
@@ -58,29 +62,51 @@ export default function ApprovalsPage() {
             const child = children.find((c) => c.id === a.childId);
             const accent = a.childId === 'alex' ? 'bg-alex-muted text-alex' : a.childId === 'jaxon' ? 'bg-jaxon-muted text-jaxon' : 'bg-carson-muted text-carson';
             return (
-              <li key={a.id} className="rounded-3xl bg-card border border-border/50 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center text-lg font-extrabold shrink-0', accent)}>
-                  {child?.avatar}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-bold text-foreground">{a.title}</p>
-                    <span className="text-xs font-semibold text-muted-foreground px-2 py-0.5 rounded-full bg-muted">{a.type}</span>
+              <li key={a.id} className="rounded-3xl bg-card border border-border/50 shadow-sm p-5">
+                <div className="flex items-start gap-4">
+                  <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-extrabold shrink-0', accent)}>
+                    {child?.avatar}
                   </div>
-                  {a.detail && <p className="text-sm text-muted-foreground mt-0.5">{a.detail}</p>}
-                  <p className="text-xs text-muted-foreground mt-0.5">{child?.name}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-foreground text-lg">{a.title}</p>
+                      <span className="text-xs font-semibold text-muted-foreground px-2 py-0.5 rounded-full bg-muted">{a.type}</span>
+                    </div>
+                    {a.detail && <p className="text-sm text-muted-foreground mt-0.5">{a.detail}</p>}
+                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">{child?.name}</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {a.submittedTime ? `${a.submittedTime} · ` : ''}{formatShort(a.submittedAt)}
+                      </span>
+                    </div>
+                  </div>
+                  {a.status !== 'Pending' && <StatusBadge status={a.status} />}
                 </div>
-                {a.status === 'Pending' ? (
-                  <div className="flex items-center gap-2">
-                    <Button onClick={() => decide(a.id, 'Approved')} className="rounded-xl gap-1 bg-success text-success-foreground hover:bg-success/90">
-                      <Check className="w-4 h-4" /> Approve
+
+                {a.status === 'Pending' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                    <Button
+                      onClick={() => decide(a.id, 'Approved')}
+                      className="rounded-2xl gap-2 h-14 text-base font-bold bg-success text-success-foreground hover:bg-success/90"
+                    >
+                      <Check className="w-5 h-5" /> Approve
                     </Button>
-                    <Button onClick={() => decide(a.id, 'Rejected')} variant="outline" className="rounded-xl gap-1 border-destructive/40 text-destructive hover:bg-destructive/10">
-                      <X className="w-4 h-4" /> Reject
+                    <Button
+                      onClick={() => decide(a.id, 'Redo')}
+                      variant="outline"
+                      className="rounded-2xl gap-2 h-14 text-base font-bold border-destructive/40 text-destructive hover:bg-destructive/10"
+                    >
+                      <RotateCcw className="w-5 h-5" /> Redo
+                    </Button>
+                    <Button
+                      onClick={() => decide(a.id, 'Excused')}
+                      variant="outline"
+                      className="rounded-2xl gap-2 h-14 text-base font-bold border-border text-muted-foreground hover:bg-accent"
+                    >
+                      <CircleSlash className="w-5 h-5" /> Excuse
                     </Button>
                   </div>
-                ) : (
-                  <StatusBadge status={a.status} />
                 )}
               </li>
             );

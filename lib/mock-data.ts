@@ -22,6 +22,8 @@ import type {
   DataConnectionSettings,
   ParentNote,
   ParentReminder,
+  WorkStatus,
+  AskMomLaterItem,
   ChildId,
 } from './types';
 
@@ -766,11 +768,11 @@ export const earnBackTasks: EarnBackTask[] = [
 
 // Parent approval queue
 export const approvalQueue: ApprovalItem[] = [
-  { id: 'aq-1', childId: 'alex', type: 'Summer Task', title: 'Math sheet', detail: 'Completed all 20 problems', submittedAt: formatDate(today), status: 'Pending' },
-  { id: 'aq-2', childId: 'alex', type: 'Reward', title: 'Tablet/Electronics Time', detail: 'Requesting unlock', submittedAt: formatDate(today), status: 'Pending' },
-  { id: 'aq-3', childId: 'jaxon', type: 'Summer Task', title: 'Read for 15 minutes', detail: 'Read a chapter book', submittedAt: formatDate(today), status: 'Pending' },
-  { id: 'aq-4', childId: 'jaxon', type: 'Earn Back', title: 'Earn back review', detail: '3 of 5 restore tasks complete', submittedAt: formatDate(today), status: 'Pending' },
-  { id: 'aq-5', childId: 'carson', type: 'Wishlist', title: 'Dinosaur fruit snacks', detail: 'Requested at the store', submittedAt: formatDate(addDays(today, -1)), status: 'Pending' },
+  { id: 'aq-1', childId: 'alex', type: 'Summer Task', title: 'Math sheet', detail: 'Completed all 20 problems', submittedAt: formatDate(today), submittedTime: '9:15 AM', status: 'Pending' },
+  { id: 'aq-2', childId: 'alex', type: 'Reward', title: 'Tablet/Electronics Time', detail: 'Requesting unlock', submittedAt: formatDate(today), submittedTime: '10:02 AM', status: 'Pending' },
+  { id: 'aq-3', childId: 'jaxon', type: 'Summer Task', title: 'Read for 15 minutes', detail: 'Read a chapter book', submittedAt: formatDate(today), submittedTime: '8:40 AM', status: 'Pending' },
+  { id: 'aq-4', childId: 'jaxon', type: 'Earn Back', title: 'Earn back review', detail: '3 of 5 restore tasks complete', submittedAt: formatDate(today), submittedTime: '11:20 AM', status: 'Pending' },
+  { id: 'aq-5', childId: 'carson', type: 'Wishlist', title: 'Dinosaur fruit snacks', detail: 'Requested at the store', submittedAt: formatDate(addDays(today, -1)), submittedTime: '4:30 PM', status: 'Pending' },
 ];
 
 // Grocery list
@@ -904,5 +906,73 @@ export function getSummerProgressForChild(childId: string) {
   const tasks = getSummerTasksForChild(childId);
   const approved = tasks.filter(t => t.status === 'Approved').length;
   return { approved, total: tasks.length, percent: tasks.length ? Math.round((approved / tasks.length) * 100) : 0 };
+}
+
+// ---------------------------------------------------------------------------
+// MOM WORK MODE
+// ---------------------------------------------------------------------------
+
+export const momWorkStatus: WorkStatus = {
+  mode: 'Do Not Interrupt',
+  until: '1:00 PM',
+  note: 'On a client call - emergencies only',
+};
+
+export const momWorkRules: string[] = [
+  'Use your inside voice',
+  'Do not interrupt during calls unless it is an emergency',
+  'Complete your independent tasks first',
+  'Add non-urgent questions to Ask Mom Later',
+];
+
+export const askMomLater: AskMomLaterItem[] = [
+  { id: 'aml-1', childId: 'alex', question: 'Can I have a friend over this weekend?', createdAt: formatDate(today), answered: false },
+  { id: 'aml-2', childId: 'jaxon', question: 'Where are my soccer cleats?', createdAt: formatDate(today), answered: false },
+  { id: 'aml-3', childId: 'carson', question: 'Can we get ice cream after dinner?', createdAt: formatDate(today), answered: false },
+];
+
+export function getAskMomLater() {
+  return askMomLater.filter(q => !q.answered);
+}
+
+// ---------------------------------------------------------------------------
+// REWARD UNLOCK PATH (per child, the reward currently being worked toward)
+// ---------------------------------------------------------------------------
+
+const unlockStateRank: Record<string, number> = {
+  'In Progress': 0,
+  'Needs Parent Approval': 1,
+  Locked: 2,
+  Unlocked: 3,
+  'Used Today': 4,
+  'Daily Limit Reached': 5,
+};
+
+export function getUnlockPathForChild(childId: string) {
+  const rewards = getUnlockRewardsForChild(childId);
+  if (rewards.length === 0) return null;
+  // Surface the most "actionable" reward: in-progress / needs approval first.
+  const sorted = [...rewards].sort(
+    (a, b) => (unlockStateRank[a.state] ?? 9) - (unlockStateRank[b.state] ?? 9)
+  );
+  const focus = sorted[0];
+  return {
+    reward: focus,
+    title: focus.title,
+    state: focus.state,
+    completedTasks: focus.completedTasks,
+    requiredTasks: focus.requiredTasks,
+    percent: focus.requiredTasks
+      ? Math.round((focus.completedTasks / focus.requiredTasks) * 100)
+      : 0,
+  };
+}
+
+// Grounding allowance status label
+export function getAllowanceStatusForChild(childId: string): 'Eligible' | 'Allowance Locked' | 'Parent Override' {
+  const g = getActiveGroundingForChild(childId);
+  if (!g) return 'Eligible';
+  if (g.allowanceEligible) return 'Parent Override';
+  return 'Allowance Locked';
 }
 
