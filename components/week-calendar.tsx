@@ -9,6 +9,7 @@ const categoryColors = {
   sports: 'bg-success/20 text-success border-success/30',
   appointment: 'bg-destructive/20 text-destructive border-destructive/30',
   family: 'bg-jaxon-muted text-jaxon border-jaxon/30',
+  work: 'bg-alex-muted text-alex border-alex/30',
   other: 'bg-muted text-muted-foreground border-muted',
 };
 

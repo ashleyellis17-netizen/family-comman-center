@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Theveny Boys',
-  description: 'Family dashboard for Alex, Jaxon, and Carson',
+  title: 'Theveny Family Command Center',
+  description: 'Household command center: kids, parents, chores, summer tasks, rewards, grounding, groceries, and meals.',
   generator: 'v0.app',
   icons: {
     icon: [
