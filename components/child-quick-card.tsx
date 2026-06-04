@@ -81,7 +81,7 @@ export function ChildQuickCard({ childId }: ChildQuickCardProps) {
                 'text-2xl md:text-3xl font-extrabold',
                 childId === 'alex' ? 'gradient-text-alex' : childId === 'jaxon' ? 'gradient-text-jaxon' : 'gradient-text-carson'
               )}>{child.name}</h3>
-              <p className="text-sm text-muted-foreground font-medium">Age {child.age}</p>
+              <p className="text-sm text-muted-foreground font-medium">Age {child.age} · {child.grade}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
           </div>

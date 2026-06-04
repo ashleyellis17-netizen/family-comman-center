@@ -1,9 +1,15 @@
 import { ChildQuickCard } from '@/components/child-quick-card';
 import { WeekCalendar } from '@/components/week-calendar';
 import { TodayChores } from '@/components/today-chores';
-import { BehaviorOverview } from '@/components/behavior-overview';
-import { AllowanceOverview } from '@/components/allowance-overview';
-import { RewardsOverview } from '@/components/rewards-overview';
+import {
+  TodayFamilyOverview,
+  CalendarHighlights,
+  SummerUnlockProgress,
+  ApprovalQueuePreview,
+  GroceryQuickView,
+  TonightsDinner,
+  AllowanceGroundingAlerts,
+} from '@/components/dashboard-sections';
 import { Calendar, Sun, Moon, Heart } from 'lucide-react';
 
 export default function Dashboard() {
@@ -31,10 +37,8 @@ export default function Dashboard() {
             )}
             <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{greeting}</span>
           </div>
-          <h1 className="cozyla-heading text-foreground">
-            Theveny Boys
-          </h1>
-          <p className="text-muted-foreground cozyla-text font-medium">Welcome to the family dashboard</p>
+          <h1 className="cozyla-heading text-foreground">Theveny Family</h1>
+          <p className="text-muted-foreground cozyla-text font-medium">Today&apos;s family overview</p>
         </div>
         <div className="flex items-center gap-4 bg-card rounded-2xl px-5 py-4 hover-lift shadow-lg shadow-primary/10 border border-border/50">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-jaxon flex items-center justify-center shadow-lg">
@@ -47,7 +51,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick View Cards */}
+      {/* Today's family overview */}
+      <section>
+        <TodayFamilyOverview />
+      </section>
+
+      {/* Kids cards */}
       <section>
         <div className="flex items-center gap-3 mb-5">
           <Heart className="w-5 h-5 text-jaxon fill-jaxon/30" />
@@ -60,27 +69,32 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Week Calendar */}
-      <section>
-        <WeekCalendar />
+      {/* Calendar highlights + week calendar */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <CalendarHighlights />
+        </div>
+        <div className="lg:col-span-2">
+          <WeekCalendar />
+        </div>
       </section>
 
-      {/* Main Content Grid */}
+      {/* Chores + summer progress */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's Chores */}
         <TodayChores />
+        <SummerUnlockProgress />
+      </section>
 
-        {/* Right Column */}
-        <div className="space-y-6">
-          {/* Behavior Points */}
-          <BehaviorOverview />
+      {/* Approvals + grocery + dinner */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ApprovalQueuePreview />
+        <GroceryQuickView />
+        <TonightsDinner />
+      </section>
 
-          {/* Allowance and Rewards Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <AllowanceOverview />
-            <RewardsOverview />
-          </div>
-        </div>
+      {/* Allowance & grounding alerts */}
+      <section>
+        <AllowanceGroundingAlerts />
       </section>
     </div>
   );

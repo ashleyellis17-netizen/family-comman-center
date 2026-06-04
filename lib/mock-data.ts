@@ -1,5 +1,6 @@
 import type {
   Child,
+  Parent,
   Chore,
   BehaviorNote,
   CalendarEvent,
@@ -7,6 +8,21 @@ import type {
   AllowanceTransaction,
   Reward,
   RewardRedemption,
+  SummerTask,
+  UnlockReward,
+  Grounding,
+  EarnBackTask,
+  ApprovalItem,
+  GroceryItem,
+  WishlistItem,
+  MealIdea,
+  MealPlanDay,
+  PantryItem,
+  GoogleAccount,
+  DataConnectionSettings,
+  ParentNote,
+  ParentReminder,
+  ChildId,
 } from './types';
 
 // Helper to get dates relative to today
@@ -25,20 +41,45 @@ export const children: Child[] = [
     color: 'alex',
     avatar: 'A',
     age: 12,
+    birthday: '2014-05-07',
+    grade: '6th Grade',
   },
   {
     id: 'jaxon',
     name: 'Jaxon',
     color: 'jaxon',
     avatar: 'J',
-    age: 10,
+    age: 8,
+    birthday: '2017-11-22',
+    grade: '2nd Grade',
   },
   {
     id: 'carson',
     name: 'Carson',
     color: 'carson',
     avatar: 'C',
-    age: 8,
+    age: 5,
+    birthday: '2020-06-26',
+    grade: 'Kindergarten',
+  },
+];
+
+export const parents: Parent[] = [
+  {
+    id: 'mom',
+    name: 'Mom',
+    role: 'Parent / Household Manager',
+    color: 'primary',
+    avatar: 'M',
+    email: 'mom@example.com',
+  },
+  {
+    id: 'dad',
+    name: 'Dad',
+    role: 'Parent / Co-Manager',
+    color: 'alex',
+    avatar: 'D',
+    email: 'dad@example.com',
   },
 ];
 
@@ -564,3 +605,304 @@ export function getEventsForChild(childId: string) {
 export function getRedemptionsForChild(childId: string) {
   return rewardRedemptions.filter(r => r.childId === childId);
 }
+
+export function getChildById(id: string) {
+  return children.find(c => c.id === id);
+}
+
+export function getParentById(id: string) {
+  return parents.find(p => p.id === id);
+}
+
+// ---------------------------------------------------------------------------
+// EXTENDED FAMILY COMMAND CENTER DATA
+// All mock data lives here. Swap these arrays for Google Sheets API later.
+// ---------------------------------------------------------------------------
+
+// Parent & family calendar events
+export const parentEvents: CalendarEvent[] = [
+  {
+    id: 'pevent-1',
+    title: 'Work Call - Client Review',
+    date: formatDate(today),
+    time: '11:00 AM',
+    parentId: 'mom',
+    category: 'work',
+  },
+  {
+    id: 'pevent-2',
+    title: 'Grocery Run',
+    date: formatDate(today),
+    time: '5:30 PM',
+    parentId: 'mom',
+    category: 'other',
+  },
+  {
+    id: 'pevent-3',
+    title: 'Dentist (Dad)',
+    date: formatDate(addDays(today, 1)),
+    time: '9:00 AM',
+    parentId: 'dad',
+    category: 'appointment',
+  },
+  {
+    id: 'pevent-4',
+    title: 'Coach Jaxon Soccer',
+    date: formatDate(addDays(today, 2)),
+    time: '4:00 PM',
+    parentId: 'dad',
+    category: 'sports',
+  },
+];
+
+export const familyEvents: CalendarEvent[] = [
+  {
+    id: 'fevent-1',
+    title: 'Family Movie Night',
+    description: 'Pizza and a movie',
+    date: formatDate(addDays(today, 1)),
+    time: '7:00 PM',
+    family: true,
+    category: 'family',
+  },
+  {
+    id: 'fevent-2',
+    title: 'Carson turns 6!',
+    description: "Carson's birthday celebration",
+    date: '2026-06-26',
+    family: true,
+    category: 'family',
+  },
+  {
+    id: 'fevent-3',
+    title: 'Grandma Visit',
+    date: formatDate(addDays(today, 4)),
+    time: '2:00 PM',
+    family: true,
+    category: 'family',
+  },
+];
+
+// Parent reminders
+export const parentReminders: ParentReminder[] = [
+  { id: 'rem-1', parentId: 'mom', text: 'Sign Alex permission slip', dueDate: formatDate(addDays(today, 1)), done: false },
+  { id: 'rem-2', parentId: 'mom', text: 'Refill Carson vitamins', done: false },
+  { id: 'rem-3', parentId: 'dad', text: 'Fix back gate latch', done: false },
+  { id: 'rem-4', parentId: 'dad', text: 'Schedule oil change', dueDate: formatDate(addDays(today, 3)), done: true },
+];
+
+// Family / parent notes
+export const parentNotes: ParentNote[] = [
+  { id: 'note-1', author: 'Mom', text: 'Jaxon has a half day Friday - pickup at noon.', createdAt: formatDate(today) },
+  { id: 'note-2', author: 'Dad', text: 'Sprinkler guy coming Tuesday morning.', createdAt: formatDate(addDays(today, -1)) },
+  { id: 'note-3', author: 'Mom', text: 'Need to plan Carson birthday party for the 26th.', createdAt: formatDate(addDays(today, -2)) },
+];
+
+// Summer tasks
+const summerCategories = [
+  'Learning', 'Reading', 'Home Responsibility', 'Personal Responsibility',
+  'Behavior / Attitude', 'Quiet Time', 'Outdoor / Physical Activity', 'Creative',
+] as const;
+
+export const summerTasks: SummerTask[] = [
+  { id: 'st-1', title: 'Handwriting sheet', category: 'Learning', childId: 'alex', status: 'Approved', points: 10, date: formatDate(today), required: true },
+  { id: 'st-2', title: 'Math sheet', category: 'Learning', childId: 'alex', status: 'Needs Parent Check', points: 10, date: formatDate(today), required: true },
+  { id: 'st-3', title: 'Science sheet', category: 'Learning', childId: 'alex', status: 'In Progress', points: 10, date: formatDate(today) },
+  { id: 'st-4', title: 'Read for 15 minutes', category: 'Reading', childId: 'alex', status: 'Approved', points: 5, date: formatDate(today), required: true },
+  { id: 'st-5', title: 'Clean living room', category: 'Home Responsibility', childId: 'alex', status: 'Not Started', points: 10, date: formatDate(today) },
+  { id: 'st-6', title: 'Complete quiet time block', category: 'Quiet Time', childId: 'alex', status: 'Approved', points: 5, date: formatDate(today) },
+
+  { id: 'st-7', title: 'Handwriting sheet', category: 'Learning', childId: 'jaxon', status: 'Approved', points: 10, date: formatDate(today), required: true },
+  { id: 'st-8', title: 'Math sheet', category: 'Learning', childId: 'jaxon', status: 'In Progress', points: 10, date: formatDate(today), required: true },
+  { id: 'st-9', title: 'Read for 15 minutes', category: 'Reading', childId: 'jaxon', status: 'Needs Parent Check', points: 5, date: formatDate(today), required: true },
+  { id: 'st-10', title: 'Sweep floor', category: 'Home Responsibility', childId: 'jaxon', status: 'Not Started', points: 5, date: formatDate(today) },
+  { id: 'st-11', title: 'Make bed', category: 'Personal Responsibility', childId: 'jaxon', status: 'Approved', points: 5, date: formatDate(today) },
+  { id: 'st-12', title: 'Do not interrupt Mom during work calls', category: 'Behavior / Attitude', childId: 'jaxon', status: 'In Progress', points: 5, date: formatDate(today) },
+
+  { id: 'st-13', title: 'Social studies/culture sheet', category: 'Learning', childId: 'carson', status: 'Not Started', points: 10, date: formatDate(today), required: true },
+  { id: 'st-14', title: 'Read for 15 minutes', category: 'Reading', childId: 'carson', status: 'Approved', points: 5, date: formatDate(today), required: true },
+  { id: 'st-15', title: 'Brush teeth', category: 'Personal Responsibility', childId: 'carson', status: 'Approved', points: 5, date: formatDate(today) },
+  { id: 'st-16', title: 'Get dressed', category: 'Personal Responsibility', childId: 'carson', status: 'Approved', points: 5, date: formatDate(today) },
+  { id: 'st-17', title: 'Empty trash', category: 'Home Responsibility', childId: 'carson', status: 'Rejected / Redo', points: 5, date: formatDate(today) },
+  { id: 'st-18', title: 'Outside play 30 minutes', category: 'Outdoor / Physical Activity', childId: 'carson', status: 'Approved', points: 5, date: formatDate(today) },
+];
+
+// Reward unlock center
+export const unlockRewards: UnlockReward[] = [
+  { id: 'ur-1', title: 'Game Time', description: '30 min of video games', childId: 'alex', state: 'In Progress', requiredTasks: 4, completedTasks: 3, dailyLimit: 2, usedToday: 0 },
+  { id: 'ur-2', title: 'Tablet/Electronics Time', childId: 'alex', state: 'Needs Parent Approval', requiredTasks: 4, completedTasks: 4, dailyLimit: 1, usedToday: 0 },
+  { id: 'ur-3', title: 'Go Outside', childId: 'alex', state: 'Unlocked', requiredTasks: 2, completedTasks: 2 },
+  { id: 'ur-4', title: 'Game Time', childId: 'jaxon', state: 'Locked', requiredTasks: 4, completedTasks: 1, dailyLimit: 2, usedToday: 0 },
+  { id: 'ur-5', title: 'Inflatable Time', childId: 'jaxon', state: 'In Progress', requiredTasks: 3, completedTasks: 2 },
+  { id: 'ur-6', title: 'TV/Movie Time', childId: 'jaxon', state: 'Used Today', requiredTasks: 2, completedTasks: 2, dailyLimit: 1, usedToday: 1 },
+  { id: 'ur-7', title: 'Special Snack', childId: 'carson', state: 'Unlocked', requiredTasks: 2, completedTasks: 2 },
+  { id: 'ur-8', title: 'Tablet/Electronics Time', childId: 'carson', state: 'Locked', requiredTasks: 4, completedTasks: 1 },
+  { id: 'ur-9', title: 'Stay Up 15 Minutes Later', childId: 'carson', state: 'Daily Limit Reached', requiredTasks: 3, completedTasks: 3, dailyLimit: 1, usedToday: 1 },
+];
+
+// Grounding log
+export const groundings: Grounding[] = [
+  {
+    id: 'gr-1',
+    childId: 'jaxon',
+    startDate: formatDate(addDays(today, -2)),
+    endDate: formatDate(addDays(today, 2)),
+    reason: 'Did not listen and threw toys',
+    allowanceEligible: false,
+    electronicsAllowed: false,
+    rewardsAllowed: false,
+    earnBackAvailable: true,
+    status: 'Earn Back Available',
+  },
+];
+
+export const earnBackTasks: EarnBackTask[] = [
+  { id: 'eb-1', groundingId: 'gr-1', childId: 'jaxon', title: 'Apologize to brother', completed: true },
+  { id: 'eb-2', groundingId: 'gr-1', childId: 'jaxon', title: 'Clean up the playroom', completed: true },
+  { id: 'eb-3', groundingId: 'gr-1', childId: 'jaxon', title: 'Two days of no warnings', completed: true },
+  { id: 'eb-4', groundingId: 'gr-1', childId: 'jaxon', title: 'Help with dishes', completed: false },
+  { id: 'eb-5', groundingId: 'gr-1', childId: 'jaxon', title: 'Write a "what I learned" note', completed: false },
+];
+
+// Parent approval queue
+export const approvalQueue: ApprovalItem[] = [
+  { id: 'aq-1', childId: 'alex', type: 'Summer Task', title: 'Math sheet', detail: 'Completed all 20 problems', submittedAt: formatDate(today), status: 'Pending' },
+  { id: 'aq-2', childId: 'alex', type: 'Reward', title: 'Tablet/Electronics Time', detail: 'Requesting unlock', submittedAt: formatDate(today), status: 'Pending' },
+  { id: 'aq-3', childId: 'jaxon', type: 'Summer Task', title: 'Read for 15 minutes', detail: 'Read a chapter book', submittedAt: formatDate(today), status: 'Pending' },
+  { id: 'aq-4', childId: 'jaxon', type: 'Earn Back', title: 'Earn back review', detail: '3 of 5 restore tasks complete', submittedAt: formatDate(today), status: 'Pending' },
+  { id: 'aq-5', childId: 'carson', type: 'Wishlist', title: 'Dinosaur fruit snacks', detail: 'Requested at the store', submittedAt: formatDate(addDays(today, -1)), status: 'Pending' },
+];
+
+// Grocery list
+export const groceryItems: GroceryItem[] = [
+  { id: 'g-1', item: 'Milk', category: 'Dairy', quantity: '2 gal', neededBy: formatDate(addDays(today, 1)), addedBy: 'Mom', priority: 'High', purchased: false },
+  { id: 'g-2', item: 'Eggs', category: 'Dairy', quantity: '1 dozen', addedBy: 'Mom', priority: 'Medium', purchased: false },
+  { id: 'g-3', item: 'Bananas', category: 'Produce', quantity: '1 bunch', addedBy: 'Dad', priority: 'Low', purchased: true },
+  { id: 'g-4', item: 'Chicken breast', category: 'Meat', quantity: '3 lb', neededBy: formatDate(addDays(today, 2)), addedBy: 'Mom', priority: 'High', purchased: false, notes: 'For taco night' },
+  { id: 'g-5', item: 'Bread', category: 'Bakery', quantity: '2 loaves', addedBy: 'Dad', priority: 'Medium', purchased: false },
+  { id: 'g-6', item: 'Apple juice', category: 'Beverages', quantity: '2', addedBy: 'Alex', priority: 'Low', purchased: false },
+];
+
+// Grocery wishlist
+export const wishlistItems: WishlistItem[] = [
+  { id: 'w-1', item: 'Cookie dough ice cream', requestedBy: 'Alex', category: 'Frozen', reason: 'Treat for good grades', approved: false, addedToList: false },
+  { id: 'w-2', item: 'Dinosaur fruit snacks', requestedBy: 'Carson', category: 'Snacks', reason: 'Saw at the store', approved: true, addedToList: false },
+  { id: 'w-3', item: 'Sparkling water', requestedBy: 'Mom', category: 'Beverages', approved: true, addedToList: true },
+  { id: 'w-4', item: 'Hot wings', requestedBy: 'Dad', category: 'Frozen', reason: 'Game day', approved: false, addedToList: false },
+];
+
+// Meal ideas
+export const mealIdeas: MealIdea[] = [
+  { id: 'm-1', name: 'Taco Night', category: 'Dinner', protein: 'Chicken', kidFriendly: true, quickMeal: true, ingredients: ['Tortillas', 'Chicken', 'Cheese', 'Lettuce', 'Salsa'], rating: 5, lastMade: formatDate(addDays(today, -7)) },
+  { id: 'm-2', name: 'Spaghetti & Meatballs', category: 'Dinner', protein: 'Beef', kidFriendly: true, quickMeal: false, ingredients: ['Pasta', 'Ground beef', 'Marinara', 'Parmesan'], rating: 5, lastMade: formatDate(addDays(today, -4)) },
+  { id: 'm-3', name: 'Sheet Pan Salmon', category: 'Dinner', protein: 'Salmon', kidFriendly: false, quickMeal: true, ingredients: ['Salmon', 'Broccoli', 'Olive oil', 'Lemon'], rating: 4 },
+  { id: 'm-4', name: 'Breakfast for Dinner', category: 'Dinner', protein: 'Eggs', kidFriendly: true, quickMeal: true, ingredients: ['Eggs', 'Bacon', 'Pancake mix', 'Syrup'], rating: 5, lastMade: formatDate(addDays(today, -10)) },
+  { id: 'm-5', name: 'Homemade Pizza', category: 'Dinner', protein: 'Pepperoni', kidFriendly: true, quickMeal: false, ingredients: ['Dough', 'Sauce', 'Mozzarella', 'Pepperoni'], rating: 5 },
+];
+
+// Weekly meal plan
+const weekOf = (() => {
+  const d = new Date(today);
+  d.setDate(d.getDate() - d.getDay());
+  return formatDate(d);
+})();
+
+export const mealPlan: MealPlanDay[] = [
+  { id: 'mp-1', weekOf, day: 'Monday', breakfast: 'Oatmeal', lunch: 'PB&J', dinner: 'Taco Night', snack: 'Apples', helper: 'Alex', groceryNeeded: ['Tortillas', 'Chicken'] },
+  { id: 'mp-2', weekOf, day: 'Tuesday', breakfast: 'Cereal', lunch: 'Leftovers', dinner: 'Spaghetti & Meatballs', snack: 'Yogurt', helper: 'Jaxon', groceryNeeded: ['Pasta', 'Ground beef'] },
+  { id: 'mp-3', weekOf, day: 'Wednesday', breakfast: 'Pancakes', lunch: 'Turkey wraps', dinner: 'Sheet Pan Salmon', snack: 'Crackers', helper: 'Mom' },
+  { id: 'mp-4', weekOf, day: 'Thursday', breakfast: 'Eggs', lunch: 'Mac & cheese', dinner: 'Homemade Pizza', snack: 'Fruit', helper: 'Carson', groceryNeeded: ['Dough', 'Mozzarella'] },
+  { id: 'mp-5', weekOf, day: 'Friday', breakfast: 'Toast', lunch: 'Quesadillas', dinner: 'Breakfast for Dinner', snack: 'Popcorn', helper: 'Dad' },
+  { id: 'mp-6', weekOf, day: 'Saturday', breakfast: 'Waffles', lunch: 'Hot dogs', dinner: 'Grill out', snack: 'Chips', helper: 'Alex' },
+  { id: 'mp-7', weekOf, day: 'Sunday', breakfast: 'Cinnamon rolls', lunch: 'Sandwiches', dinner: 'Roast chicken', snack: 'Veggies & dip', helper: 'Mom' },
+];
+
+// Pantry & staples
+export const pantryItems: PantryItem[] = [
+  { id: 'p-1', item: 'Flour', category: 'Baking', haveIt: true, quantity: '1 bag', lowStock: false, lastChecked: formatDate(addDays(today, -3)) },
+  { id: 'p-2', item: 'Sugar', category: 'Baking', haveIt: true, quantity: 'Half bag', lowStock: true, lastChecked: formatDate(addDays(today, -3)) },
+  { id: 'p-3', item: 'Pasta', category: 'Dry Goods', haveIt: true, quantity: '4 boxes', lowStock: false, lastChecked: formatDate(addDays(today, -1)) },
+  { id: 'p-4', item: 'Olive oil', category: 'Oils', haveIt: false, quantity: 'Empty', lowStock: true, lastChecked: formatDate(today) },
+  { id: 'p-5', item: 'Cereal', category: 'Breakfast', haveIt: true, quantity: '2 boxes', lowStock: false, lastChecked: formatDate(addDays(today, -2)) },
+  { id: 'p-6', item: 'Peanut butter', category: 'Spreads', haveIt: true, quantity: 'Almost out', lowStock: true, lastChecked: formatDate(addDays(today, -1)) },
+  { id: 'p-7', item: 'Canned beans', category: 'Canned', haveIt: true, quantity: '6 cans', lowStock: false, lastChecked: formatDate(addDays(today, -5)) },
+];
+
+// Google accounts
+export const googleAccounts: GoogleAccount[] = [
+  { id: 'ga-mom', name: 'Mom', role: 'Parent', gmail: 'mom@gmail.com', calendarId: 'mom@group.calendar.google.com', connected: false, syncEnabled: false },
+  { id: 'ga-dad', name: 'Dad', role: 'Parent', gmail: 'dad@gmail.com', calendarId: 'dad@group.calendar.google.com', connected: false, syncEnabled: false },
+  { id: 'ga-alex', name: 'Alex', role: 'Child', gmail: 'alex@gmail.com', calendarId: '', connected: false, syncEnabled: false },
+  { id: 'ga-jaxon', name: 'Jaxon', role: 'Child', gmail: 'jaxon@gmail.com', calendarId: '', connected: false, syncEnabled: false },
+  { id: 'ga-carson', name: 'Carson', role: 'Child', gmail: 'carson@gmail.com', calendarId: '', connected: false, syncEnabled: false },
+  { id: 'ga-family', name: 'Shared Family Calendar', role: 'Shared', gmail: 'theveny.family@gmail.com', calendarId: 'family@group.calendar.google.com', connected: false, syncEnabled: false },
+];
+
+// Data connection settings
+export const dataConnectionSettings: DataConnectionSettings = {
+  webAppUrl: '',
+  apiToken: '',
+  sheetId: '',
+  connected: false,
+};
+
+export const expectedSheetTabs: string[] = [
+  'START HERE', '00 Dashboard', '01 Weekly View', '02 Calendar', '03 Summer Dashboard',
+  '04 Family Hub', '05 Google Accounts', '06 Shared Family Calendar', '07 Mom Calendar',
+  '08 Dad Calendar', '10 Kids', '11 Parents', '20 Chore Setup', '21 Chore Log', '30 Behavior',
+  '40 Grades', '50 Allowance', '60 Rewards', '61 Reward Log', '70 Summer Tasks',
+  '71 Summer Task Log', '72 Reward Unlock Rules', '73 Grounding Log', '74 Quiet Time Blocks',
+  '75 Parent Approval Queue', '76 Summer Schedule Templates', '80 Settings', '90 Lists',
+  '95 API Map', '100 Grocery List', '101 Grocery Wishlist', '102 Meal Ideas', '103 Meal Plan',
+  '104 Pantry Staples',
+];
+
+// ---------- Helper accessors for new data ----------
+
+export function getSummerTasksForChild(childId: string) {
+  return summerTasks.filter(t => t.childId === childId);
+}
+
+export function getSummerCategories() {
+  return summerCategories;
+}
+
+export function getUnlockRewardsForChild(childId: string) {
+  return unlockRewards.filter(r => r.childId === childId);
+}
+
+export function getActiveGroundingForChild(childId: string) {
+  return groundings.find(g => g.childId === childId && g.status !== 'Resolved');
+}
+
+export function isChildGrounded(childId: string) {
+  return !!getActiveGroundingForChild(childId);
+}
+
+export function getEarnBackForGrounding(groundingId: string) {
+  return earnBackTasks.filter(t => t.groundingId === groundingId);
+}
+
+export function getPendingApprovals() {
+  return approvalQueue.filter(a => a.status === 'Pending');
+}
+
+export function getParentEvents(parentId: string) {
+  return parentEvents.filter(e => e.parentId === parentId);
+}
+
+export function getRemindersForParent(parentId: string) {
+  return parentReminders.filter(r => r.parentId === parentId);
+}
+
+export function getMealForToday() {
+  const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
+  return mealPlan.find(m => m.day === dayName);
+}
+
+export function getSummerProgressForChild(childId: string) {
+  const tasks = getSummerTasksForChild(childId);
+  const approved = tasks.filter(t => t.status === 'Approved').length;
+  return { approved, total: tasks.length, percent: tasks.length ? Math.round((approved / tasks.length) * 100) : 0 };
+}
+

@@ -67,16 +67,18 @@ export default function RootLayout({
           <div className="absolute inset-0 boho-dots opacity-50" />
         </div>
         
-        <div className="flex flex-col min-h-screen">
+        <div className="flex min-h-screen">
           <Navigation />
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
-            {children}
-          </main>
-          
-          {/* Footer */}
-          <footer className="p-4 text-center text-sm text-muted-foreground/70 font-medium">
-            Theveny Boys
-          </footer>
+          <div className="flex flex-col flex-1 min-w-0">
+            <main className="flex-1 p-4 md:p-6 lg:p-8">
+              {children}
+            </main>
+
+            {/* Footer */}
+            <footer className="p-4 text-center text-sm text-muted-foreground/70 font-medium">
+              Theveny Family Command Center
+            </footer>
+          </div>
         </div>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

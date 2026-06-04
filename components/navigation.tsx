@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
+  Home,
   User,
   ListTodo,
   Star,
@@ -16,94 +17,176 @@ import {
   Menu,
   X,
   Heart,
+  Sun,
+  Trophy,
+  Lock,
+  RotateCcw,
+  ClipboardCheck,
+  ShoppingCart,
+  ListChecks,
+  ChefHat,
+  CalendarDays,
+  Package,
+  Mail,
+  Database,
+  UserCog,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/alex', label: 'Alex', icon: User, color: 'alex' },
-  { href: '/jaxon', label: 'Jaxon', icon: User, color: 'jaxon' },
-  { href: '/carson', label: 'Carson', icon: User, color: 'carson' },
-  { href: '/chores', label: 'Chores', icon: ListTodo },
-  { href: '/behavior', label: 'Behavior', icon: Star },
-  { href: '/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/grades', label: 'Grades', icon: GraduationCap },
-  { href: '/allowance', label: 'Allowance', icon: Wallet },
-  { href: '/rewards', label: 'Rewards', icon: Gift },
-  { href: '/admin', label: 'Admin', icon: Shield },
+type NavItem = { href: string; label: string; icon: React.ElementType; color?: string };
+type NavGroup = { title: string; items: NavItem[] };
+
+const navGroups: NavGroup[] = [
+  {
+    title: 'Overview',
+    items: [
+      { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/family-hub', label: 'Family Hub', icon: Home },
+    ],
+  },
+  {
+    title: 'The Boys',
+    items: [
+      { href: '/alex', label: 'Alex', icon: User, color: 'alex' },
+      { href: '/jaxon', label: 'Jaxon', icon: User, color: 'jaxon' },
+      { href: '/carson', label: 'Carson', icon: User, color: 'carson' },
+    ],
+  },
+  {
+    title: 'Parents',
+    items: [
+      { href: '/mom', label: 'Mom Profile', icon: UserCog },
+      { href: '/dad', label: 'Dad Profile', icon: UserCog },
+    ],
+  },
+  {
+    title: 'Daily',
+    items: [
+      { href: '/chores', label: 'Chores', icon: ListTodo },
+      { href: '/behavior', label: 'Behavior', icon: Star },
+      { href: '/calendar', label: 'Calendar', icon: Calendar },
+      { href: '/grades', label: 'Grades', icon: GraduationCap },
+      { href: '/allowance', label: 'Allowance', icon: Wallet },
+      { href: '/rewards', label: 'Rewards', icon: Gift },
+    ],
+  },
+  {
+    title: 'Summer System',
+    items: [
+      { href: '/summer-tasks', label: 'Summer Task Center', icon: Sun },
+      { href: '/reward-unlock', label: 'Reward Unlock Center', icon: Trophy },
+      { href: '/grounding', label: 'Grounding & Eligibility', icon: Lock },
+      { href: '/earn-back', label: 'Earn Back Plan', icon: RotateCcw },
+      { href: '/approvals', label: 'Parent Approval Queue', icon: ClipboardCheck },
+    ],
+  },
+  {
+    title: 'Food & Home',
+    items: [
+      { href: '/grocery-list', label: 'Grocery List', icon: ShoppingCart },
+      { href: '/grocery-wishlist', label: 'Grocery Wishlist', icon: ListChecks },
+      { href: '/meal-ideas', label: 'Meal Ideas', icon: ChefHat },
+      { href: '/meal-plan', label: 'Weekly Meal Plan', icon: CalendarDays },
+      { href: '/pantry', label: 'Pantry & Staples', icon: Package },
+    ],
+  },
+  {
+    title: 'Setup',
+    items: [
+      { href: '/google-accounts', label: 'Google Accounts', icon: Mail },
+      { href: '/data-connection', label: 'Data Connection', icon: Database },
+      { href: '/admin', label: 'Admin', icon: Shield },
+    ],
+  },
 ];
 
-export function Navigation() {
+function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
   const pathname = usePathname();
+  const isActive = pathname === item.href;
+  const Icon = item.icon;
+
+  const activeColorClass =
+    item.color === 'alex'
+      ? 'bg-gradient-to-r from-alex to-alex-light text-white shadow-md shadow-alex/25'
+      : item.color === 'jaxon'
+      ? 'bg-gradient-to-r from-jaxon to-jaxon-light text-white shadow-md shadow-jaxon/25'
+      : item.color === 'carson'
+      ? 'bg-gradient-to-r from-carson to-carson-light text-carson-foreground shadow-md shadow-carson/25'
+      : 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/25';
+
+  return (
+    <Link
+      href={item.href}
+      onClick={onClick}
+      className={cn(
+        'flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-semibold transition-all duration-200 touch-target',
+        isActive ? activeColorClass : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+      )}
+    >
+      <Icon className="w-5 h-5 shrink-0" />
+      <span className="truncate">{item.label}</span>
+    </Link>
+  );
+}
+
+function NavContent({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <nav className="flex flex-col gap-5 p-4">
+      {navGroups.map((group) => (
+        <div key={group.title}>
+          <p className="px-4 mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
+            {group.title}
+          </p>
+          <div className="flex flex-col gap-1">
+            {group.items.map((item) => (
+              <NavLink key={item.href} item={item} onClick={onNavigate} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+function Brand() {
+  return (
+    <Link href="/" className="flex items-center gap-3 group">
+      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-jaxon to-carson flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+        <Heart className="w-5 h-5 text-white fill-white/50" />
+      </div>
+      <div>
+        <h1 className="text-lg font-extrabold text-foreground tracking-tight">Theveny Family</h1>
+        <p className="text-xs text-muted-foreground font-medium">Command Center</p>
+      </div>
+    </Link>
+  );
+}
+
+export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <nav className="hidden lg:flex items-center gap-1 p-4 bg-card/80 backdrop-blur-sm border-b border-border/40 overflow-x-auto sticky top-0 z-50 shadow-sm">
-        <Link href="/" className="mr-6 flex items-center gap-3 group">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-jaxon to-carson flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow group-hover:scale-105 duration-300">
-            <Heart className="w-5 h-5 text-white fill-white/50" />
-          </div>
-          <div>
-            <h1 className="text-lg font-extrabold text-foreground whitespace-nowrap tracking-tight">Theveny Boys</h1>
-            <p className="text-xs text-muted-foreground font-medium">Family Dashboard</p>
-          </div>
-        </Link>
-        <div className="flex items-center gap-1 bg-muted/50 rounded-2xl p-1.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            
-            const activeColorClass = item.color === 'alex' 
-              ? 'bg-gradient-to-r from-alex to-alex-light text-white shadow-lg shadow-alex/25'
-              : item.color === 'jaxon'
-              ? 'bg-gradient-to-r from-jaxon to-jaxon-light text-white shadow-lg shadow-jaxon/25'
-              : item.color === 'carson'
-              ? 'bg-gradient-to-r from-carson to-carson-light text-carson-foreground shadow-lg shadow-carson/25'
-              : 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25';
-
-            const hoverColorClass = item.color === 'alex'
-              ? 'hover:text-alex hover:bg-alex-muted'
-              : item.color === 'jaxon'
-              ? 'hover:text-jaxon hover:bg-jaxon-muted'
-              : item.color === 'carson'
-              ? 'hover:text-carson hover:bg-carson-muted'
-              : 'hover:text-primary hover:bg-accent';
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 touch-target whitespace-nowrap',
-                  isActive
-                    ? activeColorClass
-                    : cn('text-muted-foreground', hoverColorClass)
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                {item.label}
-              </Link>
-            );
-          })}
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex flex-col w-72 shrink-0 h-screen sticky top-0 border-r border-border/40 bg-card/70 backdrop-blur-sm">
+        <div className="p-4 border-b border-border/40">
+          <Brand />
         </div>
-      </nav>
+        <div className="flex-1 overflow-y-auto">
+          <NavContent />
+        </div>
+      </aside>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Top Bar */}
       <nav className="lg:hidden flex items-center justify-between p-4 bg-card/90 backdrop-blur-sm border-b border-border/40 sticky top-0 z-50 shadow-sm">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-jaxon to-carson flex items-center justify-center shadow-lg">
-            <Heart className="w-4 h-4 text-white fill-white/50" />
-          </div>
-          <h1 className="text-base font-extrabold text-foreground">Theveny Boys</h1>
-        </Link>
+        <Brand />
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="touch-target rounded-xl hover:bg-accent"
+          aria-label="Toggle navigation menu"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </Button>
@@ -111,46 +194,8 @@ export function Navigation() {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[73px] z-50 bg-background/98 backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="grid grid-cols-2 gap-3 p-4">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              
-              const activeColorClass = item.color === 'alex' 
-                ? 'bg-gradient-to-br from-alex to-alex-light text-white shadow-xl shadow-alex/25'
-                : item.color === 'jaxon'
-                ? 'bg-gradient-to-br from-jaxon to-jaxon-light text-white shadow-xl shadow-jaxon/25'
-                : item.color === 'carson'
-                ? 'bg-gradient-to-br from-carson to-carson-light text-carson-foreground shadow-xl shadow-carson/25'
-                : 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl shadow-primary/25';
-
-              const hoverClass = item.color === 'alex'
-                ? 'hover:bg-alex-muted hover:border-alex/30'
-                : item.color === 'jaxon'
-                ? 'hover:bg-jaxon-muted hover:border-jaxon/30'
-                : item.color === 'carson'
-                ? 'hover:bg-carson-muted hover:border-carson/30'
-                : 'hover:bg-accent hover:border-primary/30';
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    'flex flex-col items-center justify-center gap-2 p-5 rounded-2xl text-base font-semibold transition-all duration-200 touch-target hover-lift',
-                    isActive
-                      ? activeColorClass
-                      : cn('bg-card text-muted-foreground border border-border/50', hoverClass)
-                  )}
-                >
-                  <Icon className="w-7 h-7" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+        <div className="lg:hidden fixed inset-0 top-[73px] z-50 bg-background/98 backdrop-blur-sm overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+          <NavContent onNavigate={() => setMobileMenuOpen(false)} />
         </div>
       )}
     </>
