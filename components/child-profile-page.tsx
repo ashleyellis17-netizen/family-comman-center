@@ -127,7 +127,9 @@ export function ChildProfilePage({ childId }: ChildProfilePageProps) {
                 <h1 className={cn('text-4xl md:text-5xl font-bold mb-1', textGradient[childId])}>
                   {child.name}
                 </h1>
-                <p className="text-lg text-muted-foreground">Age {child.age}</p>
+                <p className="text-lg text-muted-foreground">
+                  Age {child.age} · {child.grade} · Born {new Date(child.birthday + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
                 
                 {/* Progress bar */}
                 <div className="mt-4 max-w-sm">

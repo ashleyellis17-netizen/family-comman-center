@@ -14,6 +14,7 @@ import {
   Trophy,
   MoreHorizontal,
   Clock,
+  Briefcase,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ChildId } from '@/lib/types';
@@ -23,6 +24,7 @@ const categoryIcons = {
   sports: Trophy,
   appointment: Stethoscope,
   family: Users,
+  work: Briefcase,
   other: MoreHorizontal,
 };
 
@@ -31,6 +33,7 @@ const categoryColors = {
   sports: 'bg-success/20 text-success border-success/30',
   appointment: 'bg-destructive/20 text-destructive border-destructive/30',
   family: 'bg-warning/20 text-warning-foreground border-warning/30',
+  work: 'bg-alex/20 text-alex border-alex/30',
   other: 'bg-muted text-muted-foreground border-border',
 };
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { allowanceTransactions, children, getChildStats } from '@/lib/mock-data';
+import { allowanceTransactions, children, getChildStats, getActiveGroundingForChild } from '@/lib/mock-data';
 import { ChildAvatar } from '@/components/child-avatar';
 import {
   Wallet,
@@ -14,6 +14,7 @@ import {
   ArrowDownRight,
   CheckCircle,
   Gift,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ChildId } from '@/lib/types';
@@ -62,11 +63,13 @@ export default function AllowancePage() {
       .filter((tx) => tx.amount < 0)
       .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
 
+    const grounding = getActiveGroundingForChild(child.id);
     return {
       child,
       balance: stats.allowanceBalance,
       earned,
       spent,
+      locked: grounding ? !grounding.allowanceEligible : false,
     };
   });
 
@@ -96,12 +99,12 @@ export default function AllowancePage() {
 
       {/* Balance Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {balancesByChild.map(({ child, balance, earned, spent }) => (
+        {balancesByChild.map(({ child, balance, earned, spent, locked }) => (
           <div
             key={child.id}
             className={cn(
-              'rounded-2xl p-4 shadow-lg border-2',
-              `border-${child.color}/50 bg-${child.color}-muted/20`
+              'rounded-2xl p-4 shadow-lg border-2 relative',
+              locked ? 'border-destructive/40 bg-destructive/5' : `border-${child.color}/50 bg-${child.color}-muted/20`
             )}
           >
             <div className="flex items-center gap-3 mb-4">
@@ -114,6 +117,13 @@ export default function AllowancePage() {
                 </p>
               </div>
             </div>
+
+            {locked && (
+              <div className="mb-3 flex items-center gap-2 rounded-xl bg-destructive/10 border border-destructive/30 px-3 py-2">
+                <Lock className="w-4 h-4 text-destructive shrink-0" />
+                <p className="text-xs font-bold text-destructive">Allowance frozen - currently grounded</p>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="bg-success/10 rounded-lg p-2 text-center">

@@ -13,7 +13,7 @@ export function PinEntry({ onSuccess }: PinEntryProps) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   
-  // Default PIN is 1234 - in production this would be configurable
+  // PIN is configurable; never displayed in the UI
   const correctPin = '1234';
 
   const handleNumber = (num: string) => {
@@ -138,7 +138,7 @@ export function PinEntry({ onSuccess }: PinEntryProps) {
             <div className="relative mt-6 pt-4 border-t border-border/30 flex items-center justify-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
               <p className="text-xs text-muted-foreground">
-                Default PIN: <span className="font-mono font-bold text-foreground">1234</span>
+                Parents only - enter your PIN to continue
               </p>
             </div>
           </div>
