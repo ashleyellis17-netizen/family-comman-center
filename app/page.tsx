@@ -1,6 +1,9 @@
 import { ChildQuickCard } from '@/components/child-quick-card';
 import { WeekCalendar } from '@/components/week-calendar';
 import { TodayChores } from '@/components/today-chores';
+import { AfterSchoolSurface } from '@/components/after-school-surface';
+import { ParentRequestsInbox } from '@/components/parent-requests-inbox';
+import { getParentRequests } from '@/app/actions/parent-requests';
 import {
   TodayFamilyOverview,
   CalendarHighlights,
@@ -12,7 +15,10 @@ import {
 } from '@/components/dashboard-sections';
 import { Calendar, Sun, Moon, Heart } from 'lucide-react';
 
-export default function Dashboard() {
+export const dynamic = 'force-dynamic';
+
+export default async function Dashboard() {
+  const parentRequests = await getParentRequests();
   const today = new Date();
   const formattedDate = today.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -56,6 +62,11 @@ export default function Dashboard() {
         <TodayFamilyOverview />
       </section>
 
+      {/* After-school status + needs attention */}
+      <section>
+        <AfterSchoolSurface />
+      </section>
+
       {/* Kids cards */}
       <section>
         <div className="flex items-center gap-3 mb-5">
@@ -77,6 +88,11 @@ export default function Dashboard() {
         <div className="lg:col-span-2">
           <WeekCalendar />
         </div>
+      </section>
+
+      {/* Ask a Parent inbox */}
+      <section>
+        <ParentRequestsInbox requests={parentRequests} />
       </section>
 
       {/* Chores + school progress */}

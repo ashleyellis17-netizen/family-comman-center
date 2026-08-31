@@ -1,5 +1,7 @@
-import { ChildProfilePage } from '@/components/child-profile-page';
+import { ChildStationPage } from '@/components/child-station-page';
+
+export const dynamic = 'force-dynamic';
 
 export default function CarsonPage() {
-  return <ChildProfilePage childId="carson" />;
+  return <ChildStationPage childId="carson" />;
 }
