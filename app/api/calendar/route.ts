@@ -1,5 +1,6 @@
-import { calendarEvents, children, assignments } from '@/lib/mock-data';
-import type { CalendarEvent } from '@/lib/types';
+import { children, assignments } from '@/lib/mock-data';
+import { getEvents } from '@/app/actions/events';
+import type { EventRow } from '@/lib/db/schema';
 
 // Force dynamic so the feed always reflects the latest data
 export const dynamic = 'force-dynamic';
@@ -49,7 +50,7 @@ function foldLine(line: string) {
   return chunks.join('\r\n');
 }
 
-function childLabel(event: CalendarEvent): string {
+function childLabel(event: EventRow): string {
   if (event.allChildren) return 'All Kids';
   if (event.childId) {
     const child = children.find((c) => c.id === event.childId);
@@ -106,6 +107,8 @@ export async function GET() {
   )}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
 
   const vevents: string[] = [];
+
+  const calendarEvents = await getEvents();
 
   // Family + school district calendar events
   for (const event of calendarEvents) {
