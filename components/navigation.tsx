@@ -53,13 +53,6 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: 'Parents',
-    items: [
-      { href: '/mom', label: 'Mom Profile', icon: UserCog },
-      { href: '/dad', label: 'Dad Profile', icon: UserCog },
-    ],
-  },
-  {
     title: 'Daily',
     items: [
       { href: '/chores', label: 'Chores', icon: ListTodo },
@@ -88,6 +81,13 @@ const navGroups: NavGroup[] = [
       { href: '/meal-ideas', label: 'Meal Ideas', icon: ChefHat },
       { href: '/meal-plan', label: 'Weekly Meal Plan', icon: CalendarDays },
       { href: '/pantry', label: 'Pantry & Staples', icon: Package },
+    ],
+  },
+  {
+    title: 'Parents',
+    items: [
+      { href: '/mom', label: 'Mom Profile', icon: UserCog },
+      { href: '/dad', label: 'Dad Profile', icon: UserCog },
     ],
   },
   {

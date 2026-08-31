@@ -1,11 +1,12 @@
-import { SchoolView } from '@/components/school-view';
+import { SchoolCenter } from '@/components/school-center';
 import { children } from '@/lib/mock-data';
-import { getAssignments, getSchoolBehavior } from '@/app/actions/school';
+import { getAssignments } from '@/app/actions/school';
+import { getProjects } from '@/app/actions/projects';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SchoolPage() {
-  const [assignments, behavior] = await Promise.all([getAssignments(), getSchoolBehavior()]);
+  const [assignments, projects] = await Promise.all([getAssignments(), getProjects()]);
 
   const childrenData = children.map((c) => ({
     id: c.id,
@@ -14,5 +15,5 @@ export default async function SchoolPage() {
     school: c.school,
   }));
 
-  return <SchoolView childrenData={childrenData} assignments={assignments} behavior={behavior} />;
+  return <SchoolCenter childrenData={childrenData} assignments={assignments} projects={projects} />;
 }
