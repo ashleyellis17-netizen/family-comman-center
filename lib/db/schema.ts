@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp, serial } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, timestamp, serial, integer } from 'drizzle-orm/pg-core';
 
 // Shared family calendar events. No auth / per-user scoping:
 // this is a single shared family dataset.
@@ -23,8 +23,14 @@ export const assignments = pgTable('assignments', {
   childId: text('childId').notNull(), // 'alex' | 'jaxon' | 'carson'
   title: text('title').notNull(),
   subject: text('subject').notNull().default(''),
+  type: text('type').notNull().default('homework'), // homework | test | quiz | project | reading | worksheet | other
+  teacher: text('teacher'),
   dueDate: text('dueDate'), // ISO date: YYYY-MM-DD (optional)
-  status: text('status').notNull().default('Not Started'), // Not Started | In Progress | Turned In | Graded | Missing
+  dueTime: text('dueTime'), // optional display time
+  // Not Started | In Progress | Turned In | Graded | Missing | Waiting for confirmation
+  status: text('status').notNull().default('Not Started'),
+  priority: text('priority').notNull().default('normal'), // low | normal | high
+  effort: text('effort'), // quick | medium | long
   grade: text('grade'),
   notes: text('notes'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
@@ -46,3 +52,73 @@ export const schoolBehavior = pgTable('school_behavior', {
 
 export type SchoolBehaviorRow = typeof schoolBehavior.$inferSelect;
 export type NewSchoolBehaviorRow = typeof schoolBehavior.$inferInsert;
+
+// Age-based skill / behavior check-ins (replaces the uniform school-day tracker).
+// One row per skill rated on a given day, per child.
+export const skillCheckins = pgTable('skill_checkins', {
+  id: serial('id').primaryKey(),
+  childId: text('childId').notNull(),
+  date: text('date').notNull(), // ISO date: YYYY-MM-DD
+  skill: text('skill').notNull(), // the skill/area name (age-appropriate)
+  rating: text('rating').notNull(), // stored label, e.g. "Nailed It" / "Needed Help" / "Awesome"
+  note: text('note'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type SkillCheckinRow = typeof skillCheckins.$inferSelect;
+export type NewSkillCheckinRow = typeof skillCheckins.$inferInsert;
+
+// Multi-step school projects.
+export const projects = pgTable('projects', {
+  id: serial('id').primaryKey(),
+  childId: text('childId').notNull(),
+  title: text('title').notNull(),
+  subject: text('subject'),
+  dueDate: text('dueDate'),
+  status: text('status').notNull().default('active'), // active | done
+  notes: text('notes'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type ProjectRow = typeof projects.$inferSelect;
+export type NewProjectRow = typeof projects.$inferInsert;
+
+export const projectMilestones = pgTable('project_milestones', {
+  id: serial('id').primaryKey(),
+  projectId: integer('projectId').notNull(),
+  title: text('title').notNull(),
+  done: boolean('done').notNull().default(false),
+  dueDate: text('dueDate'),
+  position: integer('position').notNull().default(0),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type ProjectMilestoneRow = typeof projectMilestones.$inferSelect;
+export type NewProjectMilestoneRow = typeof projectMilestones.$inferInsert;
+
+// Frictionless one-line capture ("Don't Forget!").
+export const brainDump = pgTable('brain_dump', {
+  id: serial('id').primaryKey(),
+  childId: text('childId').notNull(),
+  content: text('content').notNull(),
+  status: text('status').notNull().default('open'), // open | converted | done
+  convertedTo: text('convertedTo'), // reminder | prep | task | assignment | project | question
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type BrainDumpRow = typeof brainDump.$inferSelect;
+export type NewBrainDumpRow = typeof brainDump.$inferInsert;
+
+// "Ask a Parent" inbox.
+export const parentRequests = pgTable('parent_requests', {
+  id: serial('id').primaryKey(),
+  childId: text('childId').notNull(),
+  content: text('content').notNull(),
+  category: text('category').notNull().default('question'), // permission | supplies | help | question | other
+  status: text('status').notNull().default('new'), // new | seen | handling | done
+  response: text('response'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type ParentRequestRow = typeof parentRequests.$inferSelect;
+export type NewParentRequestRow = typeof parentRequests.$inferInsert;
