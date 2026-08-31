@@ -4,7 +4,7 @@ import { TodayChores } from '@/components/today-chores';
 import {
   TodayFamilyOverview,
   CalendarHighlights,
-  SummerUnlockProgress,
+  SchoolProgress,
   ApprovalQueuePreview,
   GroceryQuickView,
   TonightsDinner,
@@ -79,10 +79,10 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Chores + summer progress */}
+      {/* Chores + school progress */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TodayChores />
-        <SummerUnlockProgress />
+        <SchoolProgress />
       </section>
 
       {/* Approvals + grocery + dinner */}

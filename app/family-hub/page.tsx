@@ -12,7 +12,7 @@ import {
   mealPlan,
   unlockRewards,
   getPendingApprovals,
-  getSummerProgressForChild,
+  getSchoolProgressForChild,
   getChildStats,
 } from '@/lib/mock-data';
 import {
@@ -123,20 +123,20 @@ export default function FamilyHubPage() {
         </SectionCard>
 
         {/* Kids task status */}
-        <SectionCard title="Kids' Task Status" subtitle="Chores & summer progress" icon={ListTodo} href="/summer-tasks">
+        <SectionCard title="Kids' Task Status" subtitle="Chores & school progress" icon={ListTodo} href="/school">
           <ul className="space-y-3">
             {children.map((c) => {
               const stats = getChildStats(c.id);
-              const summer = getSummerProgressForChild(c.id);
+              const school = getSchoolProgressForChild(c.id);
               const bar = c.id === 'alex' ? 'bg-alex' : c.id === 'jaxon' ? 'bg-jaxon' : 'bg-carson';
               return (
                 <li key={c.id}>
                   <div className="flex items-center justify-between text-sm mb-1.5">
                     <span className="font-bold text-foreground">{c.name}</span>
-                    <span className="text-muted-foreground">Chores {stats.choresCompletedToday}/{stats.choresDueToday} · Summer {summer.approved}/{summer.total}</span>
+                    <span className="text-muted-foreground">Chores {stats.choresCompletedToday}/{stats.choresDueToday} · School {school.done}/{school.total}</span>
                   </div>
                   <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                    <div className={cn('h-full rounded-full', bar)} style={{ width: `${summer.percent}%` }} />
+                    <div className={cn('h-full rounded-full', bar)} style={{ width: `${school.percent}%` }} />
                   </div>
                 </li>
               );

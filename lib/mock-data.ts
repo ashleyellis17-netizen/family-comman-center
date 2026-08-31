@@ -8,6 +8,8 @@ import type {
   AllowanceTransaction,
   Reward,
   RewardRedemption,
+  Assignment,
+  SchoolBehaviorEntry,
   SummerTask,
   UnlockReward,
   Grounding,
@@ -42,7 +44,8 @@ export const children: Child[] = [
     avatar: 'A',
     age: 12,
     birthday: '2014-05-07',
-    grade: '6th Grade',
+    grade: '7th Grade',
+    school: 'George Read Middle School',
   },
   {
     id: 'jaxon',
@@ -51,7 +54,8 @@ export const children: Child[] = [
     avatar: 'J',
     age: 8,
     birthday: '2017-11-22',
-    grade: '2nd Grade',
+    grade: '3rd Grade',
+    school: 'Carrie Downie Elementary',
   },
   {
     id: 'carson',
@@ -60,7 +64,8 @@ export const children: Child[] = [
     avatar: 'C',
     age: 5,
     birthday: '2020-06-26',
-    grade: 'Kindergarten',
+    grade: '1st Grade',
+    school: 'Carrie Downie Elementary',
   },
 ];
 
@@ -295,6 +300,24 @@ export const calendarEvents: CalendarEvent[] = [
     childId: 'alex',
     category: 'sports',
   },
+  // ----- Colonial School District 2026-27 Calendar -----
+  { id: 'dist-1', title: 'First Day of School', description: 'All K-12 students report', date: '2026-09-01', allChildren: true, category: 'school' },
+  { id: 'dist-2', title: 'No School', description: 'Schools closed - offices open', date: '2026-09-04', allChildren: true, category: 'school' },
+  { id: 'dist-3', title: 'Labor Day - No School', description: 'Schools & offices closed', date: '2026-09-07', allChildren: true, category: 'school' },
+  { id: 'dist-4', title: 'No School - Prof. Development', description: 'Professional development, no students', date: '2026-09-15', allChildren: true, category: 'school' },
+  { id: 'dist-5', title: 'No School - Prof. Development', description: 'Professional development, no students', date: '2026-10-09', allChildren: true, category: 'school' },
+  { id: 'dist-6', title: 'No School - Election Day', description: 'Schools & offices closed', date: '2026-11-03', allChildren: true, category: 'school' },
+  { id: 'dist-7', title: 'No School - PD & Data Day', description: 'Professional development & data day', date: '2026-11-06', allChildren: true, category: 'school' },
+  { id: 'dist-8', title: 'No School - Veterans Day', description: 'Schools & offices closed', date: '2026-11-11', allChildren: true, category: 'school' },
+  { id: 'dist-9', title: 'Parent-Teacher Conferences', description: 'PreK-12 conferences, no students', date: '2026-11-23', allChildren: true, category: 'school' },
+  { id: 'dist-10', title: 'Parent-Teacher Conferences', description: 'PreK-12 conferences, no students', date: '2026-11-24', allChildren: true, category: 'school' },
+  { id: 'dist-11', title: 'No School', description: 'Professional responsibilities day, no students', date: '2026-11-25', allChildren: true, category: 'school' },
+  { id: 'dist-12', title: 'Thanksgiving Break - No School', description: 'Schools & offices closed', date: '2026-11-26', allChildren: true, category: 'school' },
+  { id: 'dist-13', title: 'Thanksgiving Break - No School', description: 'Schools & offices closed', date: '2026-11-27', allChildren: true, category: 'school' },
+  { id: 'dist-14', title: 'Winter Break Begins', description: 'Schools closed through Jan 1', date: '2026-12-21', allChildren: true, category: 'school' },
+  { id: 'dist-15', title: 'Winter Break - No School', description: 'Classes resume January 4', date: '2027-01-01', allChildren: true, category: 'school' },
+  { id: 'dist-16', title: 'MLK Day - No School', description: 'Schools & offices closed', date: '2027-01-18', allChildren: true, category: 'school' },
+  { id: 'dist-17', title: 'No School - Data Day', description: 'Data day, no students', date: '2027-01-29', allChildren: true, category: 'school' },
 ];
 
 export const grades: Grade[] = [
@@ -727,6 +750,49 @@ export const summerTasks: SummerTask[] = [
   { id: 'st-18', title: 'Outside play 30 minutes', category: 'Outdoor / Physical Activity', childId: 'carson', status: 'Approved', points: 5, date: formatDate(today) },
 ];
 
+// ----- School: assignment tracker (grade-appropriate) -----
+export const assignments: Assignment[] = [
+  // Alex - 7th Grade, George Read Middle School
+  { id: 'as-a1', childId: 'alex', title: 'Pre-Algebra Ch. 1 Problem Set', subject: 'Math', dueDate: formatDate(addDays(today, 1)), status: 'In Progress' },
+  { id: 'as-a2', childId: 'alex', title: 'Read "The Giver" Ch. 1-3', subject: 'ELA', dueDate: formatDate(addDays(today, 2)), status: 'Not Started' },
+  { id: 'as-a3', childId: 'alex', title: 'Scientific Method Lab Report', subject: 'Science', dueDate: formatDate(addDays(today, -1)), status: 'Turned In' },
+  { id: 'as-a4', childId: 'alex', title: 'Ancient Civilizations Map', subject: 'Social Studies', dueDate: formatDate(addDays(today, -3)), status: 'Graded', grade: 'A-' },
+  { id: 'as-a5', childId: 'alex', title: 'Vocabulary Quiz - Greetings', subject: 'Spanish', dueDate: formatDate(addDays(today, 4)), status: 'Not Started' },
+
+  // Jaxon - 3rd Grade, Carrie Downie Elementary
+  { id: 'as-j1', childId: 'jaxon', title: 'Nightly Reading Log (20 min)', subject: 'Reading', dueDate: formatDate(addDays(today, 1)), status: 'In Progress' },
+  { id: 'as-j2', childId: 'jaxon', title: 'Multiplication Facts 0-5 Quiz', subject: 'Math', dueDate: formatDate(addDays(today, 2)), status: 'Not Started' },
+  { id: 'as-j3', childId: 'jaxon', title: 'Unit 2 Spelling List', subject: 'Spelling', dueDate: formatDate(addDays(today, -1)), status: 'Turned In' },
+  { id: 'as-j4', childId: 'jaxon', title: 'Life Cycles Poster', subject: 'Science', dueDate: formatDate(addDays(today, 5)), status: 'Not Started' },
+  { id: 'as-j5', childId: 'jaxon', title: 'Community Helpers Worksheet', subject: 'Social Studies', dueDate: formatDate(addDays(today, -3)), status: 'Graded', grade: 'B+' },
+  { id: 'as-j6', childId: 'jaxon', title: 'Personal Narrative Draft', subject: 'Writing', dueDate: formatDate(addDays(today, 3)), status: 'In Progress' },
+
+  // Carson - 1st Grade, Carrie Downie Elementary
+  { id: 'as-c1', childId: 'carson', title: 'Sight Words Practice (List 3)', subject: 'Reading', dueDate: formatDate(addDays(today, 1)), status: 'In Progress' },
+  { id: 'as-c2', childId: 'carson', title: 'Addition Within 10 Worksheet', subject: 'Math', dueDate: formatDate(addDays(today, 2)), status: 'Not Started' },
+  { id: 'as-c3', childId: 'carson', title: 'Nightly Reading Log', subject: 'Reading', dueDate: formatDate(addDays(today, 1)), status: 'In Progress' },
+  { id: 'as-c4', childId: 'carson', title: 'Short Vowel Sounds Page', subject: 'Phonics', dueDate: formatDate(addDays(today, -2)), status: 'Graded', grade: 'Great!' },
+  { id: 'as-c5', childId: 'carson', title: 'Handwriting Page - Letters A-F', subject: 'Writing', dueDate: formatDate(addDays(today, -1)), status: 'Turned In' },
+  { id: 'as-c6', childId: 'carson', title: 'Show & Tell - Favorite Book', subject: 'Show & Tell', dueDate: formatDate(addDays(today, 3)), status: 'Not Started' },
+];
+
+// ----- School: behavior tracker (daily color-chart style for Jaxon & Carson) -----
+export const schoolBehavior: SchoolBehaviorEntry[] = [
+  // Jaxon
+  { id: 'sb-j1', childId: 'jaxon', date: formatDate(addDays(today, -4)), rating: 'Great Day', note: 'Helped a classmate at recess', loggedBy: 'Mrs. Carter' },
+  { id: 'sb-j2', childId: 'jaxon', date: formatDate(addDays(today, -3)), rating: 'Good Day', loggedBy: 'Mrs. Carter' },
+  { id: 'sb-j3', childId: 'jaxon', date: formatDate(addDays(today, -2)), rating: 'Okay Day', note: 'Talking during quiet reading', loggedBy: 'Mrs. Carter' },
+  { id: 'sb-j4', childId: 'jaxon', date: formatDate(addDays(today, -1)), rating: 'Great Day', note: 'Great focus in math', loggedBy: 'Mrs. Carter' },
+  { id: 'sb-j5', childId: 'jaxon', date: formatDate(today), rating: 'Good Day', loggedBy: 'Mrs. Carter' },
+
+  // Carson
+  { id: 'sb-c1', childId: 'carson', date: formatDate(addDays(today, -4)), rating: 'Good Day', loggedBy: 'Ms. Bailey' },
+  { id: 'sb-c2', childId: 'carson', date: formatDate(addDays(today, -3)), rating: 'Great Day', note: 'Followed all directions', loggedBy: 'Ms. Bailey' },
+  { id: 'sb-c3', childId: 'carson', date: formatDate(addDays(today, -2)), rating: 'Rough Day', note: 'Hard time sharing at centers', loggedBy: 'Ms. Bailey' },
+  { id: 'sb-c4', childId: 'carson', date: formatDate(addDays(today, -1)), rating: 'Good Day', loggedBy: 'Ms. Bailey' },
+  { id: 'sb-c5', childId: 'carson', date: formatDate(today), rating: 'Great Day', note: 'Kind to friends all day', loggedBy: 'Ms. Bailey' },
+];
+
 // Reward unlock center
 export const unlockRewards: UnlockReward[] = [
   { id: 'ur-1', title: 'Game Time', description: '30 min of video games', childId: 'alex', state: 'In Progress', requiredTasks: 4, completedTasks: 3, dailyLimit: 2, usedToday: 0 },
@@ -904,5 +970,33 @@ export function getSummerProgressForChild(childId: string) {
   const tasks = getSummerTasksForChild(childId);
   const approved = tasks.filter(t => t.status === 'Approved').length;
   return { approved, total: tasks.length, percent: tasks.length ? Math.round((approved / tasks.length) * 100) : 0 };
+}
+
+// ---------- School accessors ----------
+
+export function getAssignmentsForChild(childId: string) {
+  return assignments
+    .filter(a => a.childId === childId)
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+}
+
+export function getSchoolBehaviorForChild(childId: string) {
+  return schoolBehavior
+    .filter(b => b.childId === childId)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+export function getSchoolProgressForChild(childId: string) {
+  const items = getAssignmentsForChild(childId);
+  const done = items.filter(a => a.status === 'Turned In' || a.status === 'Graded').length;
+  const outstanding = items.filter(a => a.status === 'Not Started' || a.status === 'In Progress').length;
+  const missing = items.filter(a => a.status === 'Missing').length;
+  return {
+    done,
+    outstanding,
+    missing,
+    total: items.length,
+    percent: items.length ? Math.round((done / items.length) * 100) : 0,
+  };
 }
 
