@@ -12,9 +12,10 @@ import {
   mealPlan,
   unlockRewards,
   getPendingApprovals,
-  getSummerProgressForChild,
   getChildStats,
 } from '@/lib/mock-data';
+import { getSchoolProgressByChild } from '@/app/actions/school';
+import { computeSchoolProgress } from '@/lib/school';
 import {
   Home,
   CalendarDays,
@@ -31,13 +32,14 @@ function formatShort(date: string) {
   return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function FamilyHubPage() {
+export default async function FamilyHubPage() {
   const allEvents = [...familyEvents, ...parentEvents]
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 6);
   const pending = getPendingApprovals();
   const unpurchased = groceryItems.filter((g) => !g.purchased);
+  const schoolByChild = await getSchoolProgressByChild();
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -123,20 +125,20 @@ export default function FamilyHubPage() {
         </SectionCard>
 
         {/* Kids task status */}
-        <SectionCard title="Kids' Task Status" subtitle="Chores & summer progress" icon={ListTodo} href="/summer-tasks">
+        <SectionCard title="Kids' Task Status" subtitle="Chores & school progress" icon={ListTodo} href="/school">
           <ul className="space-y-3">
             {children.map((c) => {
               const stats = getChildStats(c.id);
-              const summer = getSummerProgressForChild(c.id);
+              const school = computeSchoolProgress(schoolByChild[c.id] ?? []);
               const bar = c.id === 'alex' ? 'bg-alex' : c.id === 'jaxon' ? 'bg-jaxon' : 'bg-carson';
               return (
                 <li key={c.id}>
                   <div className="flex items-center justify-between text-sm mb-1.5">
                     <span className="font-bold text-foreground">{c.name}</span>
-                    <span className="text-muted-foreground">Chores {stats.choresCompletedToday}/{stats.choresDueToday} · Summer {summer.approved}/{summer.total}</span>
+                    <span className="text-muted-foreground">Chores {stats.choresCompletedToday}/{stats.choresDueToday} · School {school.done}/{school.total}</span>
                   </div>
                   <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                    <div className={cn('h-full rounded-full', bar)} style={{ width: `${summer.percent}%` }} />
+                    <div className={cn('h-full rounded-full', bar)} style={{ width: `${school.percent}%` }} />
                   </div>
                 </li>
               );

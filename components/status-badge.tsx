@@ -10,6 +10,10 @@ const statusStyles: Record<string, string> = {
   'Rejected / Redo': 'bg-destructive/15 text-destructive border-destructive/30',
   Missed: 'bg-destructive/15 text-destructive border-destructive/30',
   Excused: 'bg-muted text-muted-foreground border-border',
+  // Assignment statuses
+  'Turned In': 'bg-primary/15 text-primary border-primary/30',
+  Graded: 'bg-success/15 text-success border-success/30',
+  Missing: 'bg-destructive/15 text-destructive border-destructive/30',
   // Reward unlock states
   Locked: 'bg-muted text-muted-foreground border-border',
   'Needs Parent Approval': 'bg-primary/15 text-primary border-primary/30',

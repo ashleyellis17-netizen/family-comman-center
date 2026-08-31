@@ -10,13 +10,14 @@ import {
   groceryItems,
   getPendingApprovals,
   getMealForToday,
-  getSummerProgressForChild,
   isChildGrounded,
   getActiveGroundingForChild,
   getChildStats,
 } from '@/lib/mock-data';
+import { getSchoolProgressByChild } from '@/app/actions/school';
+import { computeSchoolProgress } from '@/lib/school';
 import {
-  Sun,
+  GraduationCap,
   CalendarDays,
   ClipboardCheck,
   ShoppingCart,
@@ -25,6 +26,7 @@ import {
   Lock,
   Briefcase,
   Users,
+  ListTodo,
 } from 'lucide-react';
 
 function formatShort(date: string) {
@@ -38,7 +40,7 @@ export function TodayFamilyOverview() {
   const grounded = children.filter((c) => isChildGrounded(c.id)).length;
 
   const tiles = [
-    { label: "Chores Done", value: `${doneChores}/${totalChores}`, icon: Sun, color: 'from-carson to-carson-light text-carson-foreground' },
+    { label: "Chores Done", value: `${doneChores}/${totalChores}`, icon: ListTodo, color: 'from-carson to-carson-light text-carson-foreground' },
     { label: 'Need Approval', value: pending, icon: ClipboardCheck, color: 'from-primary to-primary/80 text-primary-foreground' },
     { label: 'Grocery Items', value: groceryItems.filter((g) => !g.purchased).length, icon: ShoppingCart, color: 'from-alex to-alex-light text-white' },
     { label: 'Grounded', value: grounded, icon: Lock, color: 'from-jaxon to-jaxon-light text-white' },
@@ -100,18 +102,21 @@ export function CalendarHighlights() {
   );
 }
 
-export function SummerUnlockProgress() {
+export async function SchoolProgress() {
+  const byChild = await getSchoolProgressByChild();
   return (
-    <SectionCard title="Summer Task Unlock" subtitle="Progress to unlock rewards" icon={Sun} iconClassName="from-carson to-carson-light text-carson-foreground" href="/summer-tasks">
+    <SectionCard title="School Progress" subtitle="Assignments turned in" icon={GraduationCap} iconClassName="from-primary to-primary/80 text-primary-foreground" href="/school">
       <div className="space-y-4">
         {children.map((c) => {
-          const p = getSummerProgressForChild(c.id);
+          const p = computeSchoolProgress(byChild[c.id] ?? []);
           const bar = c.id === 'alex' ? 'bg-alex' : c.id === 'jaxon' ? 'bg-jaxon' : 'bg-carson';
           return (
             <div key={c.id}>
               <div className="flex items-center justify-between mb-1.5 text-sm">
                 <span className="font-bold text-foreground">{c.name}</span>
-                <span className="text-muted-foreground">{p.approved}/{p.total} approved</span>
+                <span className="text-muted-foreground">
+                  {p.done}/{p.total} done{p.outstanding ? ` · ${p.outstanding} to do` : ''}
+                </span>
               </div>
               <div className="h-3 bg-muted rounded-full overflow-hidden">
                 <div className={cn('h-full rounded-full transition-all', bar)} style={{ width: `${p.percent}%` }} />

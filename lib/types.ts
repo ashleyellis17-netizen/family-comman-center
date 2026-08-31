@@ -11,6 +11,7 @@ export interface Child {
   age: number;
   birthday: string; // ISO date
   grade: string;
+  school?: string;
 }
 
 export interface Parent {
@@ -100,6 +101,37 @@ export interface ChildStats {
   gradeAverage: number;
   allowanceBalance: number;
   rewardsRedeemed: number;
+}
+
+// ----- School System -----
+
+export type AssignmentStatus =
+  | 'Not Started'
+  | 'In Progress'
+  | 'Turned In'
+  | 'Graded'
+  | 'Missing';
+
+export interface Assignment {
+  id: string;
+  childId: ChildId;
+  title: string;
+  subject: string;
+  dueDate: string;
+  status: AssignmentStatus;
+  grade?: string; // letter grade or score once graded
+  notes?: string;
+}
+
+export type SchoolBehaviorRating = 'Great Day' | 'Good Day' | 'Okay Day' | 'Rough Day';
+
+export interface SchoolBehaviorEntry {
+  id: string;
+  childId: ChildId;
+  date: string;
+  rating: SchoolBehaviorRating;
+  note?: string;
+  loggedBy?: string;
 }
 
 // ----- Summer Task System -----
