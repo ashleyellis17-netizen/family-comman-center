@@ -11,6 +11,19 @@ export interface SkillRating {
   tone: 'good' | 'mid' | 'low';
 }
 
+// The steps the guided check-in can walk through. Each child gets a tuned subset.
+export type CheckinStepKey = 'day' | 'homework' | 'tests' | 'projects' | 'ask' | 'brain';
+
+export interface CheckinStep {
+  key: CheckinStepKey;
+  title: string;
+  helper: string;
+  // Optional First/Then/Last-style label shown above the title (used for Jaxon).
+  framing?: string;
+}
+
+export type CheckinStyle = 'planner' | 'simple' | 'visual';
+
 export interface ChildCheckinConfig {
   // Behavior/skill areas rated during the daily check-in.
   skills: string[];
@@ -18,32 +31,62 @@ export interface ChildCheckinConfig {
   ratings: SkillRating[];
   // A short, age-appropriate greeting for the check-in home screen.
   greeting: string;
+  // Overall visual/interaction style for the guided flow.
+  style: CheckinStyle;
+  // Ordered steps for the guided check-in, with age-appropriate copy.
+  steps: CheckinStep[];
 }
 
 export const CHILD_CHECKIN_CONFIG: Record<ChildKey, ChildCheckinConfig> = {
+  // Alex, 12 — planner style. Full flow with organization/time-management language.
   alex: {
     greeting: 'How did today go?',
+    style: 'planner',
     skills: ['Turned in my work', 'Stayed organized', 'Managed my time', 'Focused in class'],
     ratings: [
       { label: 'Nailed It', emoji: '💪', tone: 'good' },
       { label: 'Needed a Reminder', emoji: '📝', tone: 'low' },
     ],
+    steps: [
+      { key: 'day', title: 'How did today go?', helper: 'Rate yourself on each one.' },
+      { key: 'homework', title: "Tonight's homework", helper: 'List everything due, then plan your order.' },
+      { key: 'tests', title: 'Tests & quizzes ahead', helper: 'Get them on the radar so you can study early.' },
+      { key: 'projects', title: 'Long-term projects', helper: 'Anything big you should chip away at?' },
+      { key: 'ask', title: 'Need anything from a parent?', helper: 'Permission, supplies, a signature?' },
+      { key: 'brain', title: 'Anything else on your mind?', helper: "Dump it here so it's off your plate." },
+    ],
   },
+  // Jaxon, 8 — First / Then / Last framing. Simpler, encouraging.
   jaxon: {
     greeting: 'How was your school day?',
+    style: 'simple',
     skills: ['Listened well', 'Finished my work', 'Was kind to friends', 'Followed directions'],
     ratings: [
       { label: 'Great Job', emoji: '⭐', tone: 'good' },
       { label: 'Needed Help', emoji: '🤝', tone: 'low' },
     ],
+    steps: [
+      { key: 'day', framing: 'First', title: 'How was your day?', helper: 'Tap what fits for each one.' },
+      { key: 'homework', framing: 'Then', title: 'What homework do you have?', helper: 'Add anything you need to do.' },
+      { key: 'tests', framing: 'Next', title: 'Any tests coming up?', helper: "Let's remember them together." },
+      { key: 'ask', framing: 'Almost done', title: 'Do you need Mom or Dad?', helper: 'Send them a little note.' },
+      { key: 'brain', framing: 'Last', title: 'Anything else to remember?', helper: "Say it so you don't forget!" },
+    ],
   },
+  // Carson, 5 — highly visual, minimal reading. Big taps, few steps.
   carson: {
     greeting: 'How do you feel about today?',
+    style: 'visual',
     skills: ['Listened', 'Shared with friends', 'Tried my best'],
     ratings: [
       { label: 'Awesome', emoji: '😀', tone: 'good' },
       { label: 'Okay', emoji: '😐', tone: 'mid' },
       { label: 'Tough', emoji: '😢', tone: 'low' },
+    ],
+    steps: [
+      { key: 'day', title: 'How do you feel?', helper: 'Tap a face for each one.' },
+      { key: 'homework', title: 'Any papers in your bag?', helper: 'A grown-up can help you add them.' },
+      { key: 'ask', title: 'Need to tell a parent something?', helper: 'We can send them a note.' },
     ],
   },
 };

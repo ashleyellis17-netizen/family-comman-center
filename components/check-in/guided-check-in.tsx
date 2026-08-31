@@ -33,28 +33,21 @@ import {
 } from 'lucide-react';
 import type { AssignmentRow } from '@/lib/db/schema';
 import type { ProjectWithMilestones } from '@/app/actions/projects';
-import { getCheckinConfig, todayISO, REQUEST_CATEGORIES } from '@/lib/checkin';
+import { getCheckinConfig, todayISO, REQUEST_CATEGORIES, type CheckinStepKey } from '@/lib/checkin';
 import { saveSkillCheckin, createAssignment } from '@/app/actions/school';
 import { createParentRequest } from '@/app/actions/parent-requests';
 import { createBrainDump } from '@/app/actions/brain-dump';
 import { SkillRatingGrid } from './skill-tracker';
 import { getAccent } from './shared';
 
-interface Step {
-  key: string;
-  title: string;
-  helper: string;
-  icon: React.ElementType;
-}
-
-const STEPS: Step[] = [
-  { key: 'day', title: 'How was your day?', helper: 'Tap what fits for each one.', icon: Smile },
-  { key: 'homework', title: 'Homework tonight?', helper: 'Add anything you need to do.', icon: BookOpen },
-  { key: 'tests', title: 'Tests or quizzes coming up?', helper: "Let's get them on the radar.", icon: CalendarClock },
-  { key: 'projects', title: 'Any projects to work on?', helper: 'Big things you are building toward.', icon: FolderKanban },
-  { key: 'ask', title: 'Need anything from a parent?', helper: 'Send Mom or Dad a note.', icon: HandHelping },
-  { key: 'brain', title: 'Anything else on your mind?', helper: "Dump it here so you don't forget.", icon: Lightbulb },
-];
+const STEP_ICONS: Record<CheckinStepKey, React.ElementType> = {
+  day: Smile,
+  homework: BookOpen,
+  tests: CalendarClock,
+  projects: FolderKanban,
+  ask: HandHelping,
+  brain: Lightbulb,
+};
 
 export function GuidedCheckIn({
   childId,
@@ -73,6 +66,7 @@ export function GuidedCheckIn({
 }) {
   const accent = getAccent(childId);
   const config = getCheckinConfig(childId);
+  const STEPS = config.steps;
   const today = todayISO();
   const [isPending, startTransition] = useTransition();
 
@@ -122,7 +116,7 @@ export function GuidedCheckIn({
   }
 
   function next() {
-    if (stepIdx === 0 && Object.keys(skills).length > 0) {
+    if (step.key === 'day' && Object.keys(skills).length > 0) {
       const ratings = Object.entries(skills).map(([skill, rating]) => ({ skill, rating }));
       startTransition(async () => { await saveSkillCheckin({ childId, date: today, ratings }); });
     }
@@ -202,11 +196,17 @@ export function GuidedCheckIn({
           <>
             <DialogHeader>
               <div className="flex items-center gap-3">
-                <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br', accent.grad)}>
-                  <step.icon className="w-6 h-6 text-white" />
+                <div className={cn('rounded-2xl flex items-center justify-center bg-gradient-to-br', accent.grad, config.style === 'visual' ? 'w-14 h-14' : 'w-11 h-11')}>
+                  {(() => {
+                    const StepIcon = STEP_ICONS[step.key];
+                    return <StepIcon className={cn('text-white', config.style === 'visual' ? 'w-7 h-7' : 'w-6 h-6')} />;
+                  })()}
                 </div>
                 <div>
-                  <DialogTitle className="text-xl">{step.title}</DialogTitle>
+                  {step.framing && (
+                    <p className={cn('text-xs font-bold uppercase tracking-wide', accent.text)}>{step.framing}</p>
+                  )}
+                  <DialogTitle className={cn(config.style === 'visual' ? 'text-2xl' : 'text-xl')}>{step.title}</DialogTitle>
                   <p className="text-sm text-muted-foreground">{step.helper}</p>
                 </div>
               </div>

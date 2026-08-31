@@ -21,6 +21,7 @@ import type {
   SkillCheckinRow,
 } from '@/lib/db/schema';
 import type { ProjectWithMilestones } from '@/app/actions/projects';
+import type { PlanItem } from '@/lib/family-data';
 import { updateAssignment } from '@/app/actions/school';
 import { isOpen, isMissing, sortByUrgency, todayISO } from '@/lib/checkin';
 import { getAccent, UrgencyBadge, formatDue } from './shared';
@@ -40,6 +41,7 @@ export function CheckInStation({
   brainDump,
   parentRequests,
   skillCheckins,
+  comingUpEvents = [],
 }: {
   childId: string;
   childName: string;
@@ -49,6 +51,7 @@ export function CheckInStation({
   brainDump: BrainDumpRow[];
   parentRequests: ParentRequestRow[];
   skillCheckins: SkillCheckinRow[];
+  comingUpEvents?: PlanItem[];
 }) {
   const accent = getAccent(childId);
   const [guidedOpen, setGuidedOpen] = useState(false);
@@ -179,7 +182,8 @@ export function CheckInStation({
           accentSoft={accent.soft}
           accentText={accent.text}
           items={comingUp}
-          emptyText="No tests or quizzes on the radar."
+          events={comingUpEvents}
+          emptyText="No tests, quizzes, or events on the radar."
           childId={childId}
           addLabel="Add a test"
           addType="test"
@@ -217,6 +221,7 @@ function AssignmentColumn({
   accentSoft,
   accentText,
   items,
+  events = [],
   emptyText,
   childId,
   addLabel,
@@ -228,12 +233,14 @@ function AssignmentColumn({
   accentSoft: string;
   accentText: string;
   items: AssignmentRow[];
+  events?: PlanItem[];
   emptyText: string;
   childId: string;
   addLabel: string;
   addType: string;
   showDue?: boolean;
 }) {
+  const isEmpty = items.length === 0 && events.length === 0;
   return (
     <div className="rounded-3xl bg-card border border-border/60 shadow-sm p-6">
       <div className="flex items-center justify-between gap-3 mb-4">
@@ -250,16 +257,37 @@ function AssignmentColumn({
           triggerVariant="secondary"
         />
       </div>
-      {items.length === 0 ? (
+      {isEmpty ? (
         <p className="text-sm text-muted-foreground text-center py-6">{emptyText}</p>
       ) : (
         <ul className="space-y-2.5">
           {items.map((a) => (
             <AssignmentItem key={a.id} assignment={a} showDue={showDue} />
           ))}
+          {events.map((e) => (
+            <EventItem key={e.id} event={e} />
+          ))}
         </ul>
       )}
     </div>
+  );
+}
+
+// Read-only calendar event surfaced from the unified plan.
+function EventItem({ event: e }: { event: PlanItem }) {
+  return (
+    <li className="flex items-center gap-3 rounded-2xl bg-muted/40 px-4 py-3">
+      <div className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center shrink-0">
+        <CalendarClock className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-foreground truncate">{e.title}</p>
+        <p className="text-xs text-muted-foreground truncate">
+          {['On the calendar', e.dueTime || null].filter(Boolean).join(' · ')}
+        </p>
+      </div>
+      <UrgencyBadge dueDate={e.dueDate} />
+    </li>
   );
 }
 
