@@ -10,11 +10,12 @@ import {
   groceryItems,
   getPendingApprovals,
   getMealForToday,
-  getSchoolProgressForChild,
   isChildGrounded,
   getActiveGroundingForChild,
   getChildStats,
 } from '@/lib/mock-data';
+import { getSchoolProgressByChild } from '@/app/actions/school';
+import { computeSchoolProgress } from '@/lib/school';
 import {
   GraduationCap,
   CalendarDays,
@@ -101,12 +102,13 @@ export function CalendarHighlights() {
   );
 }
 
-export function SchoolProgress() {
+export async function SchoolProgress() {
+  const byChild = await getSchoolProgressByChild();
   return (
     <SectionCard title="School Progress" subtitle="Assignments turned in" icon={GraduationCap} iconClassName="from-primary to-primary/80 text-primary-foreground" href="/school">
       <div className="space-y-4">
         {children.map((c) => {
-          const p = getSchoolProgressForChild(c.id);
+          const p = computeSchoolProgress(byChild[c.id] ?? []);
           const bar = c.id === 'alex' ? 'bg-alex' : c.id === 'jaxon' ? 'bg-jaxon' : 'bg-carson';
           return (
             <div key={c.id}>

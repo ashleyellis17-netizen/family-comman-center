@@ -12,9 +12,10 @@ import {
   mealPlan,
   unlockRewards,
   getPendingApprovals,
-  getSchoolProgressForChild,
   getChildStats,
 } from '@/lib/mock-data';
+import { getSchoolProgressByChild } from '@/app/actions/school';
+import { computeSchoolProgress } from '@/lib/school';
 import {
   Home,
   CalendarDays,
@@ -31,13 +32,14 @@ function formatShort(date: string) {
   return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function FamilyHubPage() {
+export default async function FamilyHubPage() {
   const allEvents = [...familyEvents, ...parentEvents]
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 6);
   const pending = getPendingApprovals();
   const unpurchased = groceryItems.filter((g) => !g.purchased);
+  const schoolByChild = await getSchoolProgressByChild();
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -127,7 +129,7 @@ export default function FamilyHubPage() {
           <ul className="space-y-3">
             {children.map((c) => {
               const stats = getChildStats(c.id);
-              const school = getSchoolProgressForChild(c.id);
+              const school = computeSchoolProgress(schoolByChild[c.id] ?? []);
               const bar = c.id === 'alex' ? 'bg-alex' : c.id === 'jaxon' ? 'bg-jaxon' : 'bg-carson';
               return (
                 <li key={c.id}>

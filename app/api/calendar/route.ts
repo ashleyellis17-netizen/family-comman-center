@@ -1,5 +1,6 @@
-import { children, assignments } from '@/lib/mock-data';
+import { children } from '@/lib/mock-data';
 import { getEvents } from '@/app/actions/events';
+import { getAssignments } from '@/app/actions/school';
 import type { EventRow } from '@/lib/db/schema';
 
 // Force dynamic so the feed always reflects the latest data
@@ -126,8 +127,10 @@ export async function GET() {
     );
   }
 
-  // Assignment due dates
+  // Assignment due dates (only those with a due date)
+  const assignments = await getAssignments();
   for (const a of assignments) {
+    if (!a.dueDate) continue;
     const child = children.find((c) => c.id === a.childId);
     const who = child ? child.name : '';
     vevents.push(
@@ -135,7 +138,7 @@ export async function GET() {
         uid: `assignment-${a.id}@family-command-center`,
         date: a.dueDate,
         title: `Due: ${a.title}${who ? ` (${who})` : ''}`,
-        description: `${a.subject} - Status: ${a.status}`,
+        description: `${a.subject ? a.subject + ' - ' : ''}Status: ${a.status}`,
         dtstamp,
       }),
     );
