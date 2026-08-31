@@ -17,6 +17,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CalendarSubscribe } from '@/components/calendar-subscribe';
 import type { ChildId } from '@/lib/types';
 
 const categoryIcons = {
@@ -100,6 +101,8 @@ export default function CalendarPage() {
           Family events and appointments
         </p>
       </div>
+
+      <CalendarSubscribe />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar Grid */}
