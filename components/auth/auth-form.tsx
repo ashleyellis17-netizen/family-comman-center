@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Heart, Loader2 } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
-  const router = useRouter()
   const params = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
@@ -34,8 +33,8 @@ export function AuthForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
         return
       }
       const next = params.get('next')
-      router.push(next && next.startsWith('/') && !next.startsWith('//') ? next : '/today')
-      router.refresh()
+      // Full navigation so the server sees the new session cookie on the first request.
+      window.location.assign(next && next.startsWith('/') && !next.startsWith('//') ? next : '/today')
     } catch {
       setError('Could not reach the server. Check your connection and try again.')
       setPending(false)
