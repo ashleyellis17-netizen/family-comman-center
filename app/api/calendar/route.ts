@@ -1,5 +1,8 @@
 import { children } from '@/lib/mock-data';
-import { getEvents } from '@/app/actions/events';
+import { getEventsForHousehold } from '@/app/actions/events';
+import { db } from '@/lib/db';
+import { households } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { getAssignments } from '@/app/actions/school';
 import type { EventRow } from '@/lib/db/schema';
 
@@ -101,7 +104,16 @@ function buildEvent(opts: {
   return lines.map(foldLine).join('\r\n');
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const token = new URL(request.url).searchParams.get('token') ?? '';
+  if (token.length < 20 || token.length > 64) {
+    return new Response('Calendar link is missing or invalid. Copy a fresh link from Calendar settings.', { status: 404 });
+  }
+  const [household] = await db.select({ id: households.id, timezone: households.timezone }).from(households).where(eq(households.calendarToken, token));
+  if (!household) {
+    return new Response('Calendar link is missing or invalid. Copy a fresh link from Calendar settings.', { status: 404 });
+  }
+
   const now = new Date();
   const dtstamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(
     now.getUTCDate(),
@@ -109,7 +121,7 @@ export async function GET() {
 
   const vevents: string[] = [];
 
-  const calendarEvents = await getEvents();
+  const calendarEvents = await getEventsForHousehold(household.id);
 
   // Family + school district calendar events
   for (const event of calendarEvents) {
@@ -119,9 +131,9 @@ export async function GET() {
       buildEvent({
         uid: `event-${event.id}@family-command-center`,
         date: event.date,
-        time: event.time,
+        time: event.time ?? undefined,
         title,
-        description: event.description,
+        description: event.description ?? undefined,
         dtstamp,
       }),
     );

@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp, serial } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, timestamp, serial, integer, numeric, jsonb } from 'drizzle-orm/pg-core';
 
 // Shared family calendar events. No auth / per-user scoping:
 // this is a single shared family dataset.
@@ -11,6 +11,7 @@ export const events = pgTable('events', {
   childId: text('childId'), // 'alex' | 'jaxon' | 'carson' | null
   allChildren: boolean('allChildren').notNull().default(false),
   category: text('category').notNull().default('other'), // school | sports | appointment | family | work | other
+  householdId: integer('householdId'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 
@@ -46,3 +47,239 @@ export const schoolBehavior = pgTable('school_behavior', {
 
 export type SchoolBehaviorRow = typeof schoolBehavior.$inferSelect;
 export type NewSchoolBehaviorRow = typeof schoolBehavior.$inferInsert;
+
+// ---------------------------------------------------------------------------
+// Better Auth tables (camelCase column names match Better Auth defaults)
+// ---------------------------------------------------------------------------
+export const user = pgTable('user', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  emailVerified: boolean('emailVerified').notNull().default(false),
+  image: text('image'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export const session = pgTable('session', {
+  id: text('id').primaryKey(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  token: text('token').notNull().unique(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  ipAddress: text('ipAddress'),
+  userAgent: text('userAgent'),
+  userId: text('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
+});
+
+export const account = pgTable('account', {
+  id: text('id').primaryKey(),
+  accountId: text('accountId').notNull(),
+  providerId: text('providerId').notNull(),
+  userId: text('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  accessToken: text('accessToken'),
+  refreshToken: text('refreshToken'),
+  idToken: text('idToken'),
+  accessTokenExpiresAt: timestamp('accessTokenExpiresAt'),
+  refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
+  scope: text('scope'),
+  password: text('password'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export const verification = pgTable('verification', {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+// ---------------------------------------------------------------------------
+// Household foundation (see scripts/001-household-foundation.sql)
+// ---------------------------------------------------------------------------
+export const households = pgTable('households', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  timezone: text('timezone').notNull().default('America/New_York'),
+  calendarToken: text('calendarToken'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export type Role = 'parent' | 'member' | 'display';
+
+export const householdMembers = pgTable('household_members', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  userId: text('userId').notNull().unique(),
+  role: text('role').$type<Role>().notNull().default('member'),
+  displayName: text('displayName').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export const householdInvites = pgTable('household_invites', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  code: text('code').notNull().unique(),
+  role: text('role').$type<Role>().notNull().default('member'),
+  createdBy: text('createdBy').notNull(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  usedAt: timestamp('usedAt'),
+  usedBy: text('usedBy'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export const groceryItems = pgTable('grocery_items', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  clientKey: text('clientKey').notNull(),
+  name: text('name').notNull(),
+  quantity: numeric('quantity'),
+  unit: text('unit'),
+  category: text('category').notNull().default('Other'),
+  store: text('store'),
+  notes: text('notes'),
+  requestedBy: text('requestedBy'),
+  neededBy: text('neededBy'),
+  isStaple: boolean('isStaple').notNull().default(false),
+  source: text('source').notNull().default('manual'),
+  checked: boolean('checked').notNull().default(false),
+  checkedAt: timestamp('checkedAt'),
+  checkedBy: text('checkedBy'),
+  deletedAt: timestamp('deletedAt'),
+  addedBy: text('addedBy'),
+  updatedBy: text('updatedBy'),
+  version: integer('version').notNull().default(1),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+export type GroceryRow = typeof groceryItems.$inferSelect;
+
+export type WishlistStatus = 'pending' | 'approved' | 'declined' | 'deferred';
+
+export const wishlistRequests = pgTable('wishlist_requests', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  clientKey: text('clientKey').notNull(),
+  name: text('name').notNull(),
+  quantity: text('quantity'),
+  reason: text('reason'),
+  requesterName: text('requesterName').notNull(),
+  requesterUserId: text('requesterUserId').notNull(),
+  status: text('status').$type<WishlistStatus>().notNull().default('pending'),
+  decisionNote: text('decisionNote'),
+  decidedBy: text('decidedBy'),
+  decidedAt: timestamp('decidedAt'),
+  groceryItemId: integer('groceryItemId'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+export type WishlistRow = typeof wishlistRequests.$inferSelect;
+
+export type Ingredient = { name: string; quantity: number | null; unit: string | null; note?: string | null };
+
+export const recipes = pgTable('recipes', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  title: text('title').notNull(),
+  sourceUrl: text('sourceUrl'),
+  sourceName: text('sourceName'),
+  externalId: text('externalId'),
+  imageUrl: text('imageUrl'),
+  servings: integer('servings'),
+  prepMinutes: integer('prepMinutes'),
+  cookMinutes: integer('cookMinutes'),
+  ingredients: jsonb('ingredients').$type<Ingredient[]>().notNull().default([]),
+  instructions: text('instructions'),
+  tags: text('tags').array().notNull().default([]),
+  cuisine: text('cuisine'),
+  mainIngredient: text('mainIngredient'),
+  kidFriendly: boolean('kidFriendly').notNull().default(false),
+  budgetFriendly: boolean('budgetFriendly').notNull().default(false),
+  wantToTry: boolean('wantToTry').notNull().default(false),
+  favorite: boolean('favorite').notNull().default(false),
+  archived: boolean('archived').notNull().default(false),
+  createdBy: text('createdBy'),
+  updatedBy: text('updatedBy'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+export type RecipeRow = typeof recipes.$inferSelect;
+
+export const recipeRatings = pgTable('recipe_ratings', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  recipeId: integer('recipeId').notNull(),
+  userId: text('userId').notNull(),
+  raterName: text('raterName').notNull(),
+  stars: integer('stars').notNull(),
+  note: text('note'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export type MealKind = 'recipe' | 'custom' | 'leftovers' | 'eating_out' | 'flexible';
+
+export const mealPlanEntries = pgTable('meal_plan_entries', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  date: text('date').notNull(),
+  slot: text('slot').$type<MealSlot>().notNull(),
+  kind: text('kind').$type<MealKind>().notNull().default('recipe'),
+  recipeId: integer('recipeId'),
+  title: text('title').notNull(),
+  servings: integer('servings'),
+  notes: text('notes'),
+  cookedAt: timestamp('cookedAt'),
+  createdBy: text('createdBy'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+export type MealEntryRow = typeof mealPlanEntries.$inferSelect;
+
+export type PantryStatus = 'in_stock' | 'low' | 'out';
+
+export const pantryItems = pgTable('pantry_items', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  name: text('name').notNull(),
+  quantity: numeric('quantity'),
+  unit: text('unit'),
+  status: text('status').$type<PantryStatus>().notNull().default('in_stock'),
+  category: text('category').notNull().default('Other'),
+  expiresOn: text('expiresOn'),
+  isStaple: boolean('isStaple').notNull().default(false),
+  updatedBy: text('updatedBy'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+export type PantryRow = typeof pantryItems.$inferSelect;
+
+export const foodPreferences = pgTable('food_preferences', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  person: text('person').notNull(),
+  kind: text('kind').$type<'dislike' | 'restriction' | 'like'>().notNull(),
+  value: text('value').notNull(),
+  createdBy: text('createdBy'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+export type PreferenceRow = typeof foodPreferences.$inferSelect;
+
+export const householdReminders = pgTable('household_reminders', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  clientKey: text('clientKey').notNull(),
+  text: text('text').notNull(),
+  dueDate: text('dueDate'),
+  isPrivate: boolean('isPrivate').notNull().default(false),
+  done: boolean('done').notNull().default(false),
+  doneAt: timestamp('doneAt'),
+  doneBy: text('doneBy'),
+  createdBy: text('createdBy'),
+  createdByUserId: text('createdByUserId'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+export type ReminderRow = typeof householdReminders.$inferSelect;

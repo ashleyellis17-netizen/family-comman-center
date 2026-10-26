@@ -3,6 +3,8 @@ import { Nunito, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { Navigation } from '@/components/navigation'
+import { Toaster } from '@/components/ui/sonner'
+import { getHouseholdContext } from '@/lib/household'
 
 const nunito = Nunito({ 
   subsets: ["latin"],
@@ -45,11 +47,12 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const ctx = await getHouseholdContext()
   return (
     <html lang="en" className="bg-background">
       <body className={`${nunito.variable} ${geistMono.variable} font-sans antialiased min-h-screen`}>
@@ -67,19 +70,29 @@ export default function RootLayout({
           <div className="absolute inset-0 boho-dots opacity-50" />
         </div>
         
-        <div className="flex min-h-screen">
-          <Navigation />
-          <div className="flex flex-col flex-1 min-w-0">
-            <main className="flex-1 p-4 md:p-6 lg:p-8">
-              {children}
-            </main>
+        {ctx ? (
+          <div className="flex min-h-screen">
+            <Navigation
+              householdName={ctx.householdName}
+              displayName={ctx.displayName}
+              role={ctx.role}
+              publicMode={ctx.publicMode}
+            />
+            <div className="flex flex-col flex-1 min-w-0">
+              <main className="flex-1 p-4 md:p-6 lg:p-8">
+                {children}
+              </main>
 
-            {/* Footer */}
-            <footer className="p-4 text-center text-sm text-muted-foreground/70 font-medium">
-              Theveny Family Command Center
-            </footer>
+              {/* Footer */}
+              <footer className="p-4 text-center text-sm text-muted-foreground/70 font-medium">
+                {ctx.householdName} Command Center
+              </footer>
+            </div>
           </div>
-        </div>
+        ) : (
+          children
+        )}
+        <Toaster position="top-center" richColors closeButton />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

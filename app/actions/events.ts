@@ -2,14 +2,20 @@
 
 import { db } from '@/lib/db';
 import { events, type NewEventRow } from '@/lib/db/schema';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { requireHousehold } from '@/lib/household';
 
-export async function getEvents() {
-  return db.select().from(events).orderBy(asc(events.date));
+export async function getEventsForHousehold(householdId: number) {
+  return db.select().from(events).where(eq(events.householdId, householdId)).orderBy(asc(events.date));
 }
 
-export async function createEvent(input: {
+export async function getEvents() {
+  const ctx = await requireHousehold();
+  return getEventsForHousehold(ctx.householdId);
+}
+
+type EventInput = {
   title: string;
   description?: string;
   date: string;
@@ -17,62 +23,45 @@ export async function createEvent(input: {
   childId?: string | null;
   allChildren?: boolean;
   category?: string;
-}) {
-  const title = input.title?.trim();
+};
+
+function toRow(input: EventInput) {
+  const title = input.title?.trim().slice(0, 160);
   if (!title) throw new Error('Title is required');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error('Valid date is required');
-
-  const row: NewEventRow = {
+  return {
     title,
-    description: input.description?.trim() || null,
+    description: input.description?.trim().slice(0, 2000) || null,
     date: input.date,
-    time: input.time?.trim() || null,
+    time: input.time?.trim().slice(0, 20) || null,
     childId: input.allChildren ? null : input.childId || null,
     allChildren: !!input.allChildren,
     category: input.category || 'other',
   };
+}
 
+export async function createEvent(input: EventInput) {
+  const ctx = await requireHousehold();
+  const row: NewEventRow = { ...toRow(input), householdId: ctx.householdId };
   const [created] = await db.insert(events).values(row).returning();
   revalidatePath('/calendar');
   revalidatePath('/');
   return created;
 }
 
-export async function updateEvent(
-  id: number,
-  input: {
-    title: string;
-    description?: string;
-    date: string;
-    time?: string;
-    childId?: string | null;
-    allChildren?: boolean;
-    category?: string;
-  }
-) {
-  const title = input.title?.trim();
-  if (!title) throw new Error('Title is required');
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error('Valid date is required');
-
+export async function updateEvent(id: number, input: EventInput) {
+  const ctx = await requireHousehold();
   await db
     .update(events)
-    .set({
-      title,
-      description: input.description?.trim() || null,
-      date: input.date,
-      time: input.time?.trim() || null,
-      childId: input.allChildren ? null : input.childId || null,
-      allChildren: !!input.allChildren,
-      category: input.category || 'other',
-    })
-    .where(eq(events.id, id));
-
+    .set(toRow(input))
+    .where(and(eq(events.id, id), eq(events.householdId, ctx.householdId)));
   revalidatePath('/calendar');
   revalidatePath('/');
 }
 
 export async function deleteEvent(id: number) {
-  await db.delete(events).where(eq(events.id, id));
+  const ctx = await requireHousehold();
+  await db.delete(events).where(and(eq(events.id, id), eq(events.householdId, ctx.householdId)));
   revalidatePath('/calendar');
   revalidatePath('/');
 }

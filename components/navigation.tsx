@@ -29,17 +29,29 @@ import {
   Mail,
   Database,
   UserCog,
+  Sun,
+  Settings,
+  LogOut,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { authClient } from '@/lib/auth-client';
+import { setDisplayMode } from '@/app/actions/household';
+import type { Role } from '@/lib/db/schema';
 
-type NavItem = { href: string; label: string; icon: React.ElementType; color?: string };
-type NavGroup = { title: string; items: NavItem[] };
+type NavItem = { href: string; label: string; icon: React.ElementType; color?: string; parentOnly?: boolean };
+type NavGroup = { title: string; items: NavItem[]; hideOnDisplay?: boolean };
+type NavProps = { householdName: string; displayName: string; role: Role; publicMode: boolean };
 
 const navGroups: NavGroup[] = [
   {
     title: 'Overview',
     items: [
+      { href: '/today', label: 'Today', icon: Sun },
       { href: '/', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/family-hub', label: 'Family Hub', icon: Home },
     ],
@@ -54,6 +66,7 @@ const navGroups: NavGroup[] = [
   },
   {
     title: 'Parents',
+    hideOnDisplay: true,
     items: [
       { href: '/mom', label: 'Mom Profile', icon: UserCog },
       { href: '/dad', label: 'Dad Profile', icon: UserCog },
@@ -85,20 +98,24 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/grocery-list', label: 'Grocery List', icon: ShoppingCart },
       { href: '/grocery-wishlist', label: 'Grocery Wishlist', icon: ListChecks },
-      { href: '/meal-ideas', label: 'Meal Ideas', icon: ChefHat },
+      { href: '/recipes', label: 'Recipes', icon: ChefHat },
       { href: '/meal-plan', label: 'Weekly Meal Plan', icon: CalendarDays },
       { href: '/pantry', label: 'Pantry & Staples', icon: Package },
     ],
   },
   {
     title: 'Setup',
+    hideOnDisplay: true,
     items: [
-      { href: '/google-accounts', label: 'Google Accounts', icon: Mail },
-      { href: '/data-connection', label: 'Data Connection', icon: Database },
-      { href: '/admin', label: 'Admin', icon: Shield },
+      { href: '/settings', label: 'Household Settings', icon: Settings, parentOnly: true },
+      { href: '/google-accounts', label: 'Google Accounts', icon: Mail, parentOnly: true },
+      { href: '/data-connection', label: 'Data Connection', icon: Database, parentOnly: true },
+      { href: '/admin', label: 'Admin', icon: Shield, parentOnly: true },
     ],
   },
 ];
+
+const ROLE_LABEL: Record<Role, string> = { parent: 'Parent', member: 'Family member', display: 'Shared display' };
 
 function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
   const pathname = usePathname();
@@ -129,10 +146,14 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
   );
 }
 
-function NavContent({ onNavigate }: { onNavigate?: () => void }) {
+function NavContent({ onNavigate, role }: { onNavigate?: () => void; role: Role }) {
+  const groups = navGroups
+    .filter((g) => !(g.hideOnDisplay && role === 'display'))
+    .map((g) => ({ ...g, items: g.items.filter((i) => !i.parentOnly || role === 'parent') }))
+    .filter((g) => g.items.length);
   return (
-    <nav className="flex flex-col gap-5 p-4">
-      {navGroups.map((group) => (
+    <nav className="flex flex-col gap-5 p-4" aria-label="Main">
+      {groups.map((group) => (
         <div key={group.title}>
           <p className="px-4 mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
             {group.title}
@@ -148,21 +169,71 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function Brand() {
+function AccountPanel({ displayName, role, publicMode }: Omit<NavProps, 'householdName'>) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="p-4 border-t border-border/40 flex flex-col gap-3">
+      <div>
+        <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
+        <p className="text-xs text-muted-foreground">
+          {ROLE_LABEL[role]}
+          {publicMode && role !== 'display' ? ' · Display mode' : ''}
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {role !== 'display' && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy}
+            className="rounded-xl"
+            onClick={async () => {
+              setBusy(true);
+              const res = await setDisplayMode(!publicMode);
+              setBusy(false);
+              if (!res.ok) return toast.error(res.error);
+              toast.success(!publicMode ? 'Display mode on — private items are hidden on this device.' : 'Display mode off.');
+              router.refresh();
+            }}
+          >
+            {publicMode ? <Eye className="w-4 h-4" aria-hidden /> : <EyeOff className="w-4 h-4" aria-hidden />}
+            {publicMode ? 'Show private' : 'Display mode'}
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="rounded-xl"
+          onClick={async () => {
+            await authClient.signOut();
+            router.push('/sign-in');
+            router.refresh();
+          }}
+        >
+          <LogOut className="w-4 h-4" aria-hidden />
+          Sign out
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Brand({ householdName }: { householdName: string }) {
   return (
     <Link href="/" className="flex items-center gap-3 group">
       <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-jaxon to-carson flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
         <Heart className="w-5 h-5 text-white fill-white/50" />
       </div>
       <div>
-        <h1 className="text-lg font-extrabold text-foreground tracking-tight">Theveny Family</h1>
+        <p className="text-lg font-extrabold text-foreground tracking-tight truncate max-w-44">{householdName}</p>
         <p className="text-xs text-muted-foreground font-medium">Command Center</p>
       </div>
     </Link>
   );
 }
 
-export function Navigation() {
+export function Navigation(props: NavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -170,16 +241,17 @@ export function Navigation() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-72 shrink-0 h-screen sticky top-0 border-r border-border/40 bg-card/70 backdrop-blur-sm">
         <div className="p-4 border-b border-border/40">
-          <Brand />
+          <Brand householdName={props.householdName} />
         </div>
         <div className="flex-1 overflow-y-auto">
-          <NavContent />
+          <NavContent role={props.role} />
         </div>
+        <AccountPanel displayName={props.displayName} role={props.role} publicMode={props.publicMode} />
       </aside>
 
       {/* Mobile Top Bar */}
       <nav className="lg:hidden flex items-center justify-between p-4 bg-card/90 backdrop-blur-sm border-b border-border/40 sticky top-0 z-50 shadow-sm">
-        <Brand />
+        <Brand householdName={props.householdName} />
         <Button
           variant="ghost"
           size="icon"
@@ -194,7 +266,8 @@ export function Navigation() {
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-[73px] z-50 bg-background/98 backdrop-blur-sm overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
-          <NavContent onNavigate={() => setMobileMenuOpen(false)} />
+          <NavContent role={props.role} onNavigate={() => setMobileMenuOpen(false)} />
+          <AccountPanel displayName={props.displayName} role={props.role} publicMode={props.publicMode} />
         </div>
       )}
     </>
