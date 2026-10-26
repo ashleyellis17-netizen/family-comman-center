@@ -7,6 +7,8 @@ import { requireHousehold, requireParent } from '@/lib/household'
 import { run, requireText, cleanText, cleanInt, cleanKey, UserError } from '@/lib/action'
 import { KID_IDS } from '@/lib/chores'
 import { pointBalances } from '@/app/actions/chores'
+import { blockingGrounding } from '@/lib/discipline'
+import { todayInTimezone } from '@/lib/dates'
 
 export async function listRewards() {
   return run('rewards.list', async () => {
@@ -56,6 +58,9 @@ export async function redeemReward(input: { rewardId: number; assignee: string; 
     const ctx = await requireHousehold()
     const clientKey = cleanKey(input.clientKey)
     if (!KID_IDS.has(input.assignee)) throw new UserError('Pick who is redeeming.')
+
+    const grounding = await blockingGrounding(ctx.householdId, todayInTimezone(ctx.timezone), input.assignee, 'rewards')
+    if (grounding) throw new UserError(`Rewards are paused until ${grounding.endDate} (grounded).`)
 
     return db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`reward:${ctx.householdId}:${input.assignee}`}))`)

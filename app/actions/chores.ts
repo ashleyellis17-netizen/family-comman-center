@@ -2,20 +2,25 @@
 
 import { and, eq, gte, lte, ne, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { choreCompletions, chores, rewardRedemptions, type ChoreRecurrence } from '@/lib/db/schema'
+import { behaviorNotes, choreCompletions, chores, rewardRedemptions, type ChoreRecurrence } from '@/lib/db/schema'
 import { requireHousehold, requireParent } from '@/lib/household'
 import { run, requireText, cleanText, cleanDate, cleanInt, UserError } from '@/lib/action'
 import { addDays, todayInTimezone } from '@/lib/dates'
 import { KID_IDS, occursOn } from '@/lib/chores'
 
-/** Points earned from completed chores minus points spent on rewards that were not cancelled. */
+/** Points from completed chores, plus signed behavior points, minus rewards that were not cancelled. */
 export async function pointBalances(householdId: number): Promise<Record<string, number>> {
-  const [earned, spent] = await Promise.all([
+  const [earned, behavior, spent] = await Promise.all([
     db
       .select({ assignee: choreCompletions.assignee, total: sql<number>`coalesce(sum(${choreCompletions.points}),0)::int` })
       .from(choreCompletions)
       .where(eq(choreCompletions.householdId, householdId))
       .groupBy(choreCompletions.assignee),
+    db
+      .select({ assignee: behaviorNotes.assignee, total: sql<number>`coalesce(sum(${behaviorNotes.points}),0)::int` })
+      .from(behaviorNotes)
+      .where(eq(behaviorNotes.householdId, householdId))
+      .groupBy(behaviorNotes.assignee),
     db
       .select({ assignee: rewardRedemptions.assignee, total: sql<number>`coalesce(sum(${rewardRedemptions.cost}),0)::int` })
       .from(rewardRedemptions)
@@ -25,6 +30,7 @@ export async function pointBalances(householdId: number): Promise<Record<string,
   const balances: Record<string, number> = {}
   for (const id of KID_IDS) balances[id] = 0
   for (const row of earned) balances[row.assignee] = (balances[row.assignee] ?? 0) + row.total
+  for (const row of behavior) balances[row.assignee] = (balances[row.assignee] ?? 0) + row.total
   for (const row of spent) balances[row.assignee] = (balances[row.assignee] ?? 0) - row.total
   return balances
 }

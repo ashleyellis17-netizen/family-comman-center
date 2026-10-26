@@ -25,7 +25,12 @@
 - [x] School tables scoped by household and claimed by the first household along with calendar events
 - [x] Today shows real chores; the old home page no longer shows demo chores or points
 - [x] Weekly reset in Household Settings (clears checked groceries and finished reminders)
-- [ ] Behavior, Allowance, Grades, Grounding, Earn Back, and Approval Queue pages still use demo data
+- [x] Grounding & Eligibility: per-child groundings that pause electronics, allowance, and/or rewards; reward redemptions and allowance payouts are blocked server-side while one is active
+- [x] Earn Back Plan: tasks attached to a grounding; when all are done, a parent approves an early end from the queue
+- [x] Behavior log: positive/negative notes with optional points that feed the shared points balance
+- [x] Allowance: weekly rate per child, payouts, bonuses and spending in a ledger (tracking only, no money movement)
+- [x] Parent Approval Queue: earn-back requests, reward hand-outs, and grocery wishlist requests in one place (parents only)
+- [ ] Grades page still uses demo data
 - [ ] Cozyla display pairing flow (a one-time code instead of signing in with a display account)
 - [ ] Push / email notifications for reminders and wishlist approvals
 

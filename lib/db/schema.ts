@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp, serial, integer, numeric, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, timestamp, serial, integer, numeric, jsonb, primaryKey } from 'drizzle-orm/pg-core';
 
 // Shared family calendar events. No auth / per-user scoping:
 // this is a single shared family dataset.
@@ -343,3 +343,75 @@ export const householdReminders = pgTable('household_reminders', {
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 export type ReminderRow = typeof householdReminders.$inferSelect;
+
+export type GroundingStatus = 'active' | 'review' | 'resolved';
+export const groundings = pgTable('groundings', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  assignee: text('assignee').notNull(),
+  reason: text('reason').notNull(),
+  startDate: text('startDate').notNull(),
+  endDate: text('endDate').notNull(),
+  blocksAllowance: boolean('blocksAllowance').notNull().default(true),
+  blocksElectronics: boolean('blocksElectronics').notNull().default(true),
+  blocksRewards: boolean('blocksRewards').notNull().default(true),
+  earnBackEnabled: boolean('earnBackEnabled').notNull().default(false),
+  status: text('status').$type<GroundingStatus>().notNull().default('active'),
+  resolution: text('resolution').$type<'earned_back' | 'override' | null>(),
+  resolvedAt: timestamp('resolvedAt'),
+  resolvedByUserId: text('resolvedByUserId'),
+  createdByUserId: text('createdByUserId'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+export type GroundingRow = typeof groundings.$inferSelect;
+
+export const earnBackTasks = pgTable('earn_back_tasks', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  groundingId: integer('groundingId').notNull(),
+  title: text('title').notNull(),
+  position: integer('position').notNull().default(0),
+  doneAt: timestamp('doneAt'),
+  doneByUserId: text('doneByUserId'),
+});
+export type EarnBackTaskRow = typeof earnBackTasks.$inferSelect;
+
+export type BehaviorKind = 'positive' | 'concern' | 'note';
+export const behaviorNotes = pgTable('behavior_notes', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  assignee: text('assignee').notNull(),
+  kind: text('kind').$type<BehaviorKind>().notNull().default('note'),
+  note: text('note').notNull(),
+  points: integer('points').notNull().default(0),
+  date: text('date').notNull(),
+  clientKey: text('clientKey').notNull(),
+  createdByUserId: text('createdByUserId'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+export type BehaviorNoteRow = typeof behaviorNotes.$inferSelect;
+
+export type AllowanceKind = 'allowance' | 'bonus' | 'spend' | 'deduction';
+export const allowanceEntries = pgTable('allowance_entries', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  assignee: text('assignee').notNull(),
+  kind: text('kind').$type<AllowanceKind>().notNull(),
+  amountCents: integer('amountCents').notNull(),
+  note: text('note'),
+  weekOf: text('weekOf'),
+  clientKey: text('clientKey').notNull(),
+  createdByUserId: text('createdByUserId'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+export type AllowanceEntryRow = typeof allowanceEntries.$inferSelect;
+
+export const allowanceRates = pgTable(
+  'allowance_rates',
+  {
+    householdId: integer('householdId').notNull(),
+    assignee: text('assignee').notNull(),
+    weeklyCents: integer('weeklyCents').notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.householdId, t.assignee] })],
+);
