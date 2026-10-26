@@ -6,12 +6,34 @@ import { revalidatePath } from 'next/cache'
 import { and, eq, gt, isNull, sql, desc } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { events, householdInvites, householdMembers, households, type Role } from '@/lib/db/schema'
+import { assignments, schoolBehavior, events, groceryItems, householdReminders, householdInvites, householdMembers, households, type Role } from '@/lib/db/schema'
 import { getSessionUser, requireHousehold, requireParent } from '@/lib/household'
 import { run, requireText, UserError, cleanText } from '@/lib/action'
 import { isValidTimezone } from '@/lib/dates'
 
 const ROLES: Role[] = ['parent', 'member', 'display']
+
+/**
+ * Weekly reset: clears bought grocery items (soft-deleted, so the 30-day restore window still applies)
+ * and finished reminders. Unchecked items, recipes, chores, and points are never touched.
+ */
+export async function weeklyReset() {
+  return run('household.weeklyReset', async () => {
+    const ctx = await requireParent()
+    return db.transaction(async (tx) => {
+      const groceries = await tx
+        .update(groceryItems)
+        .set({ deletedAt: new Date() })
+        .where(and(eq(groceryItems.householdId, ctx.householdId), eq(groceryItems.checked, true), isNull(groceryItems.deletedAt)))
+        .returning({ id: groceryItems.id })
+      const reminders = await tx
+        .delete(householdReminders)
+        .where(and(eq(householdReminders.householdId, ctx.householdId), eq(householdReminders.done, true)))
+        .returning({ id: householdReminders.id })
+      return { groceries: groceries.length, reminders: reminders.length }
+    })
+  })
+}
 
 function code(len = 8) {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -40,6 +62,8 @@ export async function createHousehold(input: { name: string; displayName: string
       await tx.insert(householdMembers).values({ householdId: household.id, userId: user.id, role: 'parent', displayName })
       if (count === 0) {
         await tx.update(events).set({ householdId: household.id }).where(isNull(events.householdId))
+        await tx.update(assignments).set({ householdId: household.id }).where(isNull(assignments.householdId))
+        await tx.update(schoolBehavior).set({ householdId: household.id }).where(isNull(schoolBehavior.householdId))
       }
       return { householdId: household.id }
     })

@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { and, asc, count, eq, inArray, isNull, ne } from 'drizzle-orm'
-import { CalendarDays, ChefHat, ListChecks, Package, ShoppingCart } from 'lucide-react'
+import { CalendarDays, CheckSquare, ChefHat, ListChecks, Package, ShoppingCart } from 'lucide-react'
 import { db } from '@/lib/db'
-import { events, groceryItems, mealPlanEntries, pantryItems, wishlistRequests } from '@/lib/db/schema'
+import { choreCompletions, chores, events, groceryItems, mealPlanEntries, pantryItems, wishlistRequests } from '@/lib/db/schema'
+import { occursOn } from '@/lib/chores'
 import { requirePageContext } from '@/lib/household'
 import { addDays, formatDate, hourInTimezone, timeToMinutes, todayInTimezone } from '@/lib/dates'
 import { TodayReminders } from '@/components/today/today-reminders'
@@ -18,13 +19,18 @@ export default async function TodayPage() {
   const hour = hourInTimezone(ctx.timezone)
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
-  const [dayEvents, meals, [groceryCount], [wishCount], lowPantry] = await Promise.all([
+  const [dayEvents, meals, [groceryCount], [wishCount], lowPantry, activeChores, doneToday] = await Promise.all([
     db.select().from(events).where(and(eq(events.householdId, ctx.householdId), inArray(events.date, [today, tomorrow]))),
     db.select().from(mealPlanEntries).where(and(eq(mealPlanEntries.householdId, ctx.householdId), eq(mealPlanEntries.date, today))).orderBy(asc(mealPlanEntries.createdAt)),
     db.select({ n: count() }).from(groceryItems).where(and(eq(groceryItems.householdId, ctx.householdId), eq(groceryItems.checked, false), isNull(groceryItems.deletedAt))),
     db.select({ n: count() }).from(wishlistRequests).where(and(eq(wishlistRequests.householdId, ctx.householdId), eq(wishlistRequests.status, 'pending'))),
     db.select({ name: pantryItems.name, status: pantryItems.status }).from(pantryItems).where(and(eq(pantryItems.householdId, ctx.householdId), ne(pantryItems.status, 'in_stock'))).limit(8),
+    db.select().from(chores).where(and(eq(chores.householdId, ctx.householdId), eq(chores.archived, false))),
+    db.select({ choreId: choreCompletions.choreId }).from(choreCompletions).where(and(eq(choreCompletions.householdId, ctx.householdId), eq(choreCompletions.date, today))),
   ])
+  const choresToday = activeChores.filter((c) => occursOn(c, today))
+  const doneIds = new Set(doneToday.map((d) => d.choreId))
+  const choresDone = choresToday.filter((c) => doneIds.has(c.id)).length
 
   const sortEvents = (d: string) =>
     dayEvents.filter((e) => e.date === d).sort((a, b) => (timeToMinutes(a.time) ?? -1) - (timeToMinutes(b.time) ?? -1))
@@ -90,6 +96,7 @@ export default async function TodayPage() {
           <TodayReminders />
         </div>
         <nav aria-label="Food and home" className="flex flex-col gap-2">
+          <QuickLink href="/chores" icon={CheckSquare} label="Chores" detail={choresToday.length ? `${choresDone} of ${choresToday.length} done today` : 'No chores today'} />
           <QuickLink href="/grocery-list" icon={ShoppingCart} label="Grocery list" detail={`${groceryCount.n} item${groceryCount.n === 1 ? '' : 's'} to buy`} />
           <QuickLink href="/grocery-wishlist" icon={ListChecks} label="Wishlist" detail={wishCount.n ? `${wishCount.n} waiting for a parent` : 'No open requests'} />
           <QuickLink href="/pantry" icon={Package} label="Pantry" detail={lowPantry.length ? `Low or out: ${lowPantry.map((p) => p.name).join(', ')}` : 'Everything stocked'} />

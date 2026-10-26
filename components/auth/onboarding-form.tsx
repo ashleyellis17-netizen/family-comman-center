@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Home, Loader2, UserPlus } from 'lucide-react'
 import { createHousehold, joinHousehold } from '@/app/actions/household'
 import { authClient } from '@/lib/auth-client'
@@ -11,7 +10,6 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function OnboardingForm({ defaultName }: { defaultName: string }) {
-  const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const timezone = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'America/New_York'
@@ -27,8 +25,8 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
         setPending(false)
         return
       }
-      router.push('/today')
-      router.refresh()
+      // Full navigation: membership just changed, and push+refresh can cancel the pending client navigation.
+      window.location.assign('/today')
     } catch {
       setError('Could not reach the server. Try again.')
       setPending(false)
@@ -101,8 +99,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           className="mt-6 text-sm text-muted-foreground underline-offset-4 hover:underline"
           onClick={async () => {
             await authClient.signOut()
-            router.push('/sign-in')
-            router.refresh()
+            window.location.assign('/sign-in')
           }}
         >
           Sign out

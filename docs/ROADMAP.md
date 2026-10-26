@@ -20,8 +20,12 @@
 
 ## Phase 2: Next
 
-- [ ] Move Chores, Rewards, and School pages from demo data to household-scoped tables
-- [ ] Weekly reset routine (clear checked items, roll the meal plan forward)
+- [x] Chores: daily / weekly / one-time chores per kid, check off for today, points ledger (scripts/003)
+- [x] Rewards: parent-managed catalog, redemptions under a per-kid lock (no double-spending), cancel refunds points
+- [x] School tables scoped by household and claimed by the first household along with calendar events
+- [x] Today shows real chores; the old home page no longer shows demo chores or points
+- [x] Weekly reset in Household Settings (clears checked groceries and finished reminders)
+- [ ] Behavior, Allowance, Grades, Grounding, Earn Back, and Approval Queue pages still use demo data
 - [ ] Cozyla display pairing flow (a one-time code instead of signing in with a display account)
 - [ ] Push / email notifications for reminders and wishlist approvals
 

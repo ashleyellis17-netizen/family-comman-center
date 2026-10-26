@@ -20,6 +20,7 @@ import {
   setDisplayMode,
   updateHousehold,
   updateMember,
+  weeklyReset,
 } from '@/app/actions/household'
 
 const ROLE_LABEL: Record<Role, string> = { parent: 'Parent', member: 'Family member', display: 'Shared display' }
@@ -163,6 +164,20 @@ export function HouseholdSettings({ displayMode }: { displayMode: boolean }) {
           }}
         >
           <RefreshCw className="w-4 h-4" aria-hidden /> Rotate link
+        </Button>
+      </Section>
+
+      <Section title="Weekly reset">
+        <p className="text-sm text-muted-foreground">Clear bought grocery items and finished reminders to start the week fresh. Unchecked items, recipes, chores, and points are kept.</p>
+        <Button
+          variant="outline"
+          className="self-start rounded-xl"
+          onClick={async () => {
+            const res = await act(weeklyReset())
+            if (res) toast.success(`Cleared ${res.groceries} bought item${res.groceries === 1 ? '' : 's'} and ${res.reminders} finished reminder${res.reminders === 1 ? '' : 's'}`)
+          }}
+        >
+          <RefreshCw className="w-4 h-4" aria-hidden /> Reset for the week
         </Button>
       </Section>
 

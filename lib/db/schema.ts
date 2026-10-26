@@ -28,6 +28,7 @@ export const assignments = pgTable('assignments', {
   status: text('status').notNull().default('Not Started'), // Not Started | In Progress | Turned In | Graded | Missing
   grade: text('grade'),
   notes: text('notes'),
+  householdId: integer('householdId'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 
@@ -42,11 +43,70 @@ export const schoolBehavior = pgTable('school_behavior', {
   rating: text('rating').notNull(), // Great Day | Good Day | Okay Day | Rough Day
   note: text('note'),
   loggedBy: text('loggedBy'),
+  householdId: integer('householdId'),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 
 export type SchoolBehaviorRow = typeof schoolBehavior.$inferSelect;
 export type NewSchoolBehaviorRow = typeof schoolBehavior.$inferInsert;
+
+export type ChoreRecurrence = 'once' | 'daily' | 'weekly';
+
+export const chores = pgTable('chores', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  assignee: text('assignee').notNull(),
+  points: integer('points').notNull().default(0),
+  recurrence: text('recurrence').$type<ChoreRecurrence>().notNull().default('once'),
+  weekday: integer('weekday'),
+  dueDate: text('dueDate'),
+  archived: boolean('archived').notNull().default(false),
+  createdByUserId: text('createdByUserId'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+export type ChoreRow = typeof chores.$inferSelect;
+
+export const choreCompletions = pgTable('chore_completions', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  choreId: integer('choreId').notNull(),
+  date: text('date').notNull(),
+  assignee: text('assignee').notNull(),
+  points: integer('points').notNull().default(0),
+  completedByUserId: text('completedByUserId'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+
+export const rewardItems = pgTable('reward_items', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  cost: integer('cost').notNull(),
+  available: boolean('available').notNull().default(true),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+});
+export type RewardItemRow = typeof rewardItems.$inferSelect;
+
+export type RedemptionStatus = 'pending' | 'fulfilled' | 'cancelled';
+
+export const rewardRedemptions = pgTable('reward_redemptions', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  rewardId: integer('rewardId').notNull(),
+  rewardTitle: text('rewardTitle').notNull(),
+  assignee: text('assignee').notNull(),
+  cost: integer('cost').notNull(),
+  status: text('status').$type<RedemptionStatus>().notNull().default('pending'),
+  clientKey: text('clientKey').notNull(),
+  requestedByUserId: text('requestedByUserId'),
+  decidedByUserId: text('decidedByUserId'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  decidedAt: timestamp('decidedAt'),
+});
+export type RedemptionRow = typeof rewardRedemptions.$inferSelect;
 
 // ---------------------------------------------------------------------------
 // Better Auth tables (camelCase column names match Better Auth defaults)
