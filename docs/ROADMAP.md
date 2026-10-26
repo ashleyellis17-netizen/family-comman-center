@@ -32,7 +32,7 @@
 - [x] Allowance: weekly rate per child, payouts, bonuses and spending in a ledger (tracking only, no money movement)
 - [x] Parent Approval Queue: earn-back requests, reward hand-outs, and grocery wishlist requests in one place (parents only)
 - [ ] Grades page still uses demo data
-- [ ] Cozyla display pairing flow (a one-time code instead of signing in with a display account)
+- [x] Cozyla display pairing flow: the screen opens `/pair` and shows a 10-minute code, a parent enters it in Settings → Shared displays, and the screen stays connected with no account. Parents can rename or unpair a screen there, and a revoked screen goes back to showing a code
 - [ ] Push / email notifications for reminders and wishlist approvals
 
 ## Phase 3: Integrations

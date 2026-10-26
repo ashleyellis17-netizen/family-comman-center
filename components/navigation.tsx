@@ -41,11 +41,12 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 import { setDisplayMode } from '@/app/actions/household';
+import { unpairThisDisplay } from '@/app/actions/displays';
 import type { Role } from '@/lib/db/schema';
 
 type NavItem = { href: string; label: string; icon: React.ElementType; color?: string; parentOnly?: boolean };
 type NavGroup = { title: string; items: NavItem[]; hideOnDisplay?: boolean };
-type NavProps = { householdName: string; displayName: string; role: Role; publicMode: boolean };
+type NavProps = { householdName: string; displayName: string; role: Role; publicMode: boolean; pairedDisplay?: boolean };
 
 const navGroups: NavGroup[] = [
   {
@@ -168,7 +169,7 @@ function NavContent({ onNavigate, role }: { onNavigate?: () => void; role: Role 
   );
 }
 
-function AccountPanel({ displayName, role, publicMode }: Omit<NavProps, 'householdName'>) {
+function AccountPanel({ displayName, role, publicMode, pairedDisplay }: Omit<NavProps, 'householdName'>) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   return (
@@ -200,19 +201,36 @@ function AccountPanel({ displayName, role, publicMode }: Omit<NavProps, 'househo
             {publicMode ? 'Show private' : 'Display mode'}
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="rounded-xl"
-          onClick={async () => {
-            await authClient.signOut();
-            router.push('/sign-in');
-            router.refresh();
-          }}
-        >
-          <LogOut className="w-4 h-4" aria-hidden />
-          Sign out
-        </Button>
+        {pairedDisplay ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-xl"
+            onClick={async () => {
+              if (!confirm('Unpair this display? A parent will need to enter a new code to reconnect it.')) return;
+              const res = await unpairThisDisplay();
+              if (!res.ok) return toast.error(res.error);
+              window.location.replace('/pair');
+            }}
+          >
+            <LogOut className="w-4 h-4" aria-hidden />
+            Unpair display
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-xl"
+            onClick={async () => {
+              await authClient.signOut();
+              router.push('/sign-in');
+              router.refresh();
+            }}
+          >
+            <LogOut className="w-4 h-4" aria-hidden />
+            Sign out
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -245,7 +263,7 @@ export function Navigation(props: NavProps) {
         <div className="flex-1 overflow-y-auto">
           <NavContent role={props.role} />
         </div>
-        <AccountPanel displayName={props.displayName} role={props.role} publicMode={props.publicMode} />
+        <AccountPanel displayName={props.displayName} role={props.role} publicMode={props.publicMode} pairedDisplay={props.pairedDisplay} />
       </aside>
 
       {/* Mobile Top Bar */}
@@ -266,7 +284,7 @@ export function Navigation(props: NavProps) {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-[73px] z-50 bg-background/98 backdrop-blur-sm overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
           <NavContent role={props.role} onNavigate={() => setMobileMenuOpen(false)} />
-          <AccountPanel displayName={props.displayName} role={props.role} publicMode={props.publicMode} />
+          <AccountPanel displayName={props.displayName} role={props.role} publicMode={props.publicMode} pairedDisplay={props.pairedDisplay} />
         </div>
       )}
     </>

@@ -77,6 +77,7 @@ export default async function RootLayout({
               displayName={ctx.displayName}
               role={ctx.role}
               publicMode={ctx.publicMode}
+              pairedDisplay={ctx.deviceId !== undefined}
             />
             <div className="flex flex-col flex-1 min-w-0">
               <main className="flex-1 p-4 md:p-6 lg:p-8">

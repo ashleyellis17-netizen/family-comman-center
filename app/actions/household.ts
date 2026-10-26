@@ -4,7 +4,6 @@ import { randomBytes } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { and, eq, gt, isNull, sql, desc } from 'drizzle-orm'
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { assignments, schoolBehavior, events, groceryItems, householdReminders, householdInvites, householdMembers, households, type Role } from '@/lib/db/schema'
 import { getSessionUser, requireHousehold, requireParent } from '@/lib/household'
@@ -188,19 +187,6 @@ export async function removeMember(memberId: number) {
     await db.delete(householdMembers).where(eq(householdMembers.id, member.id))
     await db.execute(sql`delete from "session" where "userId" = ${member.userId}`)
     return true
-  })
-}
-
-/** Creates a dedicated sign-in for a shared wall screen. Credentials are shown once and never stored in plain text. */
-export async function createDisplayAccount(input: { label: string }) {
-  return run('household.displayAccount', async () => {
-    const ctx = await requireParent()
-    const label = requireText(input.label, 'Display name', 40)
-    const email = `display-${ctx.householdId}-${code(6).toLowerCase()}@display.family-command-center.app`
-    const password = `${code(6)}-${code(6)}-${code(6)}`
-    const result = await auth.api.signUpEmail({ body: { email, password, name: label } })
-    await db.insert(householdMembers).values({ householdId: ctx.householdId, userId: result.user.id, role: 'display', displayName: label })
-    return { email, password }
   })
 }
 

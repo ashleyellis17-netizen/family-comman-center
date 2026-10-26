@@ -415,3 +415,26 @@ export const allowanceRates = pgTable(
   },
   (t) => [primaryKey({ columns: [t.householdId, t.assignee] })],
 );
+
+export const displayDevices = pgTable('display_devices', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  name: text('name').notNull(),
+  tokenHash: text('tokenHash').notNull().unique(),
+  pairedByUserId: text('pairedByUserId').notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp('lastSeenAt', { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp('revokedAt', { withTimezone: true }),
+});
+
+export const displayPairings = pgTable('display_pairings', {
+  id: serial('id').primaryKey(),
+  code: text('code').notNull(),
+  secretHash: text('secretHash').notNull().unique(),
+  householdId: integer('householdId'),
+  deviceName: text('deviceName'),
+  approvedByUserId: text('approvedByUserId'),
+  approvedAt: timestamp('approvedAt', { withTimezone: true }),
+  expiresAt: timestamp('expiresAt', { withTimezone: true }).notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+});

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSessionCookie } from 'better-auth/cookies'
 
-const PUBLIC_PATHS = ['/sign-in', '/sign-up', '/api/auth', '/api/calendar', '/manifest.webmanifest']
+const PUBLIC_PATHS = ['/sign-in', '/sign-up', '/pair', '/api/auth', '/api/calendar', '/api/display', '/manifest.webmanifest']
 
 // Optimistic redirect only. Every page, action, and route still validates the session on the server.
 export function proxy(request: NextRequest) {
@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return NextResponse.next()
   }
-  if (!getSessionCookie(request)) {
+  if (!getSessionCookie(request) && !request.cookies.has('fcc-display')) {
     const url = new URL('/sign-in', request.url)
     if (pathname !== '/') url.searchParams.set('next', pathname)
     return NextResponse.redirect(url)

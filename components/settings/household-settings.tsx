@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { act, useActionData } from '@/lib/client-actions'
 import type { Role } from '@/lib/db/schema'
+import { approveDisplayPairing, listDisplayDevices, revokeDisplayDevice } from '@/app/actions/displays'
 import {
-  createDisplayAccount,
   createInvite,
   getHouseholdSettings,
   removeMember,
@@ -32,7 +32,6 @@ function copy(text: string) {
 export function HouseholdSettings({ displayMode }: { displayMode: boolean }) {
   const router = useRouter()
   const { data, error, mutate } = useActionData('settings', getHouseholdSettings, { refreshInterval: 0 })
-  const [displayCreds, setDisplayCreds] = useState<{ email: string; password: string } | null>(null)
   const [origin, setOrigin] = useState('')
   useEffect(() => setOrigin(window.location.origin), [])
 
@@ -113,30 +112,8 @@ export function HouseholdSettings({ displayMode }: { displayMode: boolean }) {
         <p className="text-xs text-muted-foreground">The invitee creates an account, then enters the code on the welcome screen. Codes are single-use.</p>
       </Section>
 
-      <Section title="Shared display (Cozyla / wall screen)">
-        <p className="text-sm text-muted-foreground">
-          Create a dedicated sign-in for the wall screen. It stays signed in, can check off groceries and reminders, and never shows private items or settings.
-        </p>
-        <form
-          className="flex flex-wrap gap-2"
-          onSubmit={async (e) => {
-            e.preventDefault()
-            const f = new FormData(e.currentTarget)
-            const creds = await act(createDisplayAccount({ label: String(f.get('label')) }))
-            if (creds) { setDisplayCreds(creds); mutate() }
-          }}
-        >
-          <Label htmlFor="d-label" className="sr-only">Display name</Label>
-          <Input id="d-label" name="label" defaultValue="Kitchen screen" className="h-11 flex-1 min-w-40" required />
-          <Button type="submit" className="h-11 rounded-xl"><Monitor className="w-4 h-4" aria-hidden /> Create display sign-in</Button>
-        </form>
-        {displayCreds && (
-          <div role="status" className="flex flex-col gap-2 rounded-xl border border-primary/40 bg-primary/5 p-3 text-sm">
-            <p className="font-bold text-foreground">Sign in on the display with these. They are shown only once.</p>
-            <p className="font-mono break-all">Email: {displayCreds.email} <Button variant="ghost" size="sm" onClick={() => copy(displayCreds.email)}>Copy</Button></p>
-            <p className="font-mono break-all">Password: {displayCreds.password} <Button variant="ghost" size="sm" onClick={() => copy(displayCreds.password)}>Copy</Button></p>
-          </div>
-        )}
+      <Section title="Shared displays (Cozyla / wall screen)">
+        <SharedDisplays origin={origin} />
         <div className="flex flex-wrap items-center gap-3 border-t border-border/50 pt-3">
           <p className="flex-1 text-sm text-foreground">
             <span className="font-semibold">Display mode on this device:</span> {displayMode ? 'On — private items hidden' : 'Off'}
@@ -194,6 +171,72 @@ export function HouseholdSettings({ displayMode }: { displayMode: boolean }) {
           <li className="flex items-center gap-2"><KeyRound className="w-4 h-4 text-muted-foreground" aria-hidden /> <span className="font-semibold">Recipe search</span> — TheMealDB public API (no account needed).</li>
         </ul>
       </Section>
+    </div>
+  )
+}
+
+function SharedDisplays({ origin }: { origin: string }) {
+  const { data: devices, mutate } = useActionData('display-devices', listDisplayDevices, { refreshInterval: 0 })
+  const [pending, setPending] = useState(false)
+
+  return (
+    <div className="flex flex-col gap-4">
+      <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm leading-relaxed text-muted-foreground">
+        <li>
+          On the display, open <span className="font-mono text-foreground">{origin ? `${origin}/pair` : '/pair'}</span>
+          {origin && <Button variant="ghost" size="sm" onClick={() => copy(`${origin}/pair`)}><Copy className="w-4 h-4" aria-hidden /> Copy link</Button>}
+        </li>
+        <li>Enter the code it shows below. No account or password is needed on the display.</li>
+      </ol>
+      <form
+        className="grid gap-2 sm:grid-cols-[10rem_1fr_auto] sm:items-end"
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const form = e.currentTarget
+          const f = new FormData(form)
+          setPending(true)
+          const res = await act(approveDisplayPairing({ code: String(f.get('code')), name: String(f.get('name')) }))
+          setPending(false)
+          if (res) {
+            toast.success(`${res.name} paired. It will open Today in a few seconds.`)
+            form.reset()
+            setTimeout(() => mutate(), 4000)
+          }
+        }}
+      >
+        <Field id="pair-code" label="Code on display">
+          <Input id="pair-code" name="code" required autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={7} placeholder="ABC 123" className="h-11 font-mono text-lg uppercase tracking-widest" />
+        </Field>
+        <Field id="pair-name" label="Name this display">
+          <Input id="pair-name" name="name" defaultValue="Kitchen screen" maxLength={40} className="h-11" />
+        </Field>
+        <Button type="submit" className="h-11 rounded-xl" disabled={pending}>
+          <Monitor className="w-4 h-4" aria-hidden /> {pending ? 'Pairing…' : 'Pair display'}
+        </Button>
+      </form>
+      {devices && devices.length > 0 && (
+        <ul className="flex flex-col gap-2">
+          {devices.map((d) => (
+            <li key={d.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 p-3">
+              <Monitor className="w-4 h-4 text-muted-foreground" aria-hidden />
+              <span className="flex-1 font-semibold text-foreground">{d.name}</span>
+              <span className="text-xs text-muted-foreground">Last active {new Date(d.lastSeenAt).toLocaleString()}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive"
+                onClick={async () => {
+                  if (!confirm(`Unpair ${d.name}? It will need a new code to reconnect.`)) return
+                  if (await act(revokeDisplayDevice(d.id), 'Display unpaired')) mutate()
+                }}
+              >
+                Unpair
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="text-xs text-muted-foreground">Paired displays can view the household, add groceries, and check things off. They never see private items or settings.</p>
     </div>
   )
 }
