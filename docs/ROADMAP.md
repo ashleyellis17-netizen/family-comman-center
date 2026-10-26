@@ -23,6 +23,7 @@
 - [x] Chores: daily / weekly / one-time chores per kid, check off for today, points ledger (scripts/003)
 - [x] Rewards: parent-managed catalog, redemptions under a per-kid lock (no double-spending), cancel refunds points
 - [x] School tables scoped by household and claimed by the first household along with calendar events
+- [x] School Center removed from the app (nav, page, dashboard card, assignment due dates in the calendar feed). The school tables and their data are still in the database.
 - [x] Today shows real chores; the old home page no longer shows demo chores or points
 - [x] Weekly reset in Household Settings (clears checked groceries and finished reminders)
 - [x] Grounding & Eligibility: per-child groundings that pause electronics, allowance, and/or rewards; reward redemptions and allowance payouts are blocked server-side while one is active

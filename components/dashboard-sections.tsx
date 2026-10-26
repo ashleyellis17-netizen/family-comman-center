@@ -14,10 +14,7 @@ import {
   getActiveGroundingForChild,
   getChildStats,
 } from '@/lib/mock-data';
-import { getSchoolProgressByChild } from '@/app/actions/school';
-import { computeSchoolProgress } from '@/lib/school';
 import {
-  GraduationCap,
   CalendarDays,
   ClipboardCheck,
   ShoppingCart,
@@ -97,33 +94,6 @@ export function CalendarHighlights() {
         <Row title={`${mom.name}'s Day`} icon={Briefcase} items={momEvents} iconClass="text-primary" />
         <Row title={`${dad.name}'s Day`} icon={Briefcase} items={dadEvents} iconClass="text-alex" />
         <Row title="Shared Family" icon={Users} items={fam} iconClass="text-carson" />
-      </div>
-    </SectionCard>
-  );
-}
-
-export async function SchoolProgress() {
-  const byChild = await getSchoolProgressByChild();
-  return (
-    <SectionCard title="School Progress" subtitle="Assignments turned in" icon={GraduationCap} iconClassName="from-primary to-primary/80 text-primary-foreground" href="/school">
-      <div className="space-y-4">
-        {children.map((c) => {
-          const p = computeSchoolProgress(byChild[c.id] ?? []);
-          const bar = c.id === 'alex' ? 'bg-alex' : c.id === 'jaxon' ? 'bg-jaxon' : 'bg-carson';
-          return (
-            <div key={c.id}>
-              <div className="flex items-center justify-between mb-1.5 text-sm">
-                <span className="font-bold text-foreground">{c.name}</span>
-                <span className="text-muted-foreground">
-                  {p.done}/{p.total} done{p.outstanding ? ` · ${p.outstanding} to do` : ''}
-                </span>
-              </div>
-              <div className="h-3 bg-muted rounded-full overflow-hidden">
-                <div className={cn('h-full rounded-full transition-all', bar)} style={{ width: `${p.percent}%` }} />
-              </div>
-            </div>
-          );
-        })}
       </div>
     </SectionCard>
   );

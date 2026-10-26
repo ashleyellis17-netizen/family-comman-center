@@ -84,9 +84,8 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: 'School',
+    title: 'Rules & Rewards',
     items: [
-      { href: '/school', label: 'School Center', icon: GraduationCap },
       { href: '/reward-unlock', label: 'Reward Unlock Center', icon: Trophy },
       { href: '/grounding', label: 'Grounding & Eligibility', icon: Lock },
       { href: '/earn-back', label: 'Earn Back Plan', icon: RotateCcw },

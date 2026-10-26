@@ -38,8 +38,8 @@ export function CalendarSubscribe() {
         <div className="flex-1 min-w-0">
           <h2 className="font-bold text-foreground">Sync to Cozyla</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Subscribe your Cozyla calendar to this live feed. New family events,
-            school district dates, and assignment due dates update automatically.
+            Subscribe your Cozyla calendar to this live feed. New family events
+            update automatically.
           </p>
 
           <div className="mt-4 space-y-3">

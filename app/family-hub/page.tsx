@@ -14,8 +14,6 @@ import {
   getPendingApprovals,
   getChildStats,
 } from '@/lib/mock-data';
-import { getSchoolProgressByChild } from '@/app/actions/school';
-import { computeSchoolProgress } from '@/lib/school';
 import {
   Home,
   CalendarDays,
@@ -39,7 +37,6 @@ export default async function FamilyHubPage() {
     .slice(0, 6);
   const pending = getPendingApprovals();
   const unpurchased = groceryItems.filter((g) => !g.purchased);
-  const schoolByChild = await getSchoolProgressByChild();
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -125,20 +122,20 @@ export default async function FamilyHubPage() {
         </SectionCard>
 
         {/* Kids task status */}
-        <SectionCard title="Kids' Task Status" subtitle="Chores & school progress" icon={ListTodo} href="/school">
+        <SectionCard title="Kids' Task Status" subtitle="Chores today" icon={ListTodo} href="/chores">
           <ul className="space-y-3">
             {children.map((c) => {
               const stats = getChildStats(c.id);
-              const school = computeSchoolProgress(schoolByChild[c.id] ?? []);
+              const percent = stats.choresDueToday ? Math.round((stats.choresCompletedToday / stats.choresDueToday) * 100) : 0;
               const bar = c.id === 'alex' ? 'bg-alex' : c.id === 'jaxon' ? 'bg-jaxon' : 'bg-carson';
               return (
                 <li key={c.id}>
                   <div className="flex items-center justify-between text-sm mb-1.5">
                     <span className="font-bold text-foreground">{c.name}</span>
-                    <span className="text-muted-foreground">Chores {stats.choresCompletedToday}/{stats.choresDueToday} · School {school.done}/{school.total}</span>
+                    <span className="text-muted-foreground">Chores {stats.choresCompletedToday}/{stats.choresDueToday}</span>
                   </div>
                   <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                    <div className={cn('h-full rounded-full', bar)} style={{ width: `${school.percent}%` }} />
+                    <div className={cn('h-full rounded-full', bar)} style={{ width: `${percent}%` }} />
                   </div>
                 </li>
               );
