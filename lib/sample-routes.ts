@@ -5,9 +5,6 @@
  */
 export const SAMPLE_ROUTES = new Set<string>([
   '/family-hub',
-  '/meal-plan',
-  '/meal-ideas',
-  '/pantry',
   '/alex',
   '/jaxon',
   '/carson',

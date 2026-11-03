@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
-import { OPEN_ACCESS } from '@/lib/access';
 
 const PUBLIC_PREFIXES = ['/sign-in', '/sign-up', '/display/pair', '/api/auth', '/api/display', '/api/calendar'];
 
@@ -8,13 +7,15 @@ const PUBLIC_PREFIXES = ['/sign-in', '/sign-up', '/display/pair', '/api/auth', '
 // display token on the server before reading household data.
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (OPEN_ACCESS) return NextResponse.next();
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return NextResponse.next();
   }
   const hasSession = !!getSessionCookie(request);
   const hasDisplay = !!request.cookies.get('fcc_display')?.value;
   if (!hasSession && !hasDisplay) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = '/sign-in';
     url.search = '';
