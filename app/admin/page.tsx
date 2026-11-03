@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { PinEntry } from '@/components/pin-entry';
 import { children, chores, rewards } from '@/lib/mock-data';
 import { ChildAvatar } from '@/components/child-avatar';
 import { Button } from '@/components/ui/button';
@@ -658,12 +657,7 @@ function AdminForm({ section, onBack }: { section: AdminSection; onBack: () => v
 }
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeSection, setActiveSection] = useState<AdminSection>('overview');
-
-  if (!isAuthenticated) {
-    return <PinEntry onSuccess={() => setIsAuthenticated(true)} />;
-  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -678,14 +672,6 @@ export default function AdminPage() {
             Manage family command center
           </p>
         </div>
-        <Button
-          variant="ghost"
-          onClick={() => setIsAuthenticated(false)}
-          className="touch-target"
-        >
-          <LogOut className="w-5 h-5 mr-2" />
-          Lock
-        </Button>
       </div>
 
       {activeSection === 'overview' ? (

@@ -294,43 +294,6 @@ export function ChildProfilePage({ childId }: ChildProfilePageProps) {
           </div>
         </div>
 
-        {/* Grades Section */}
-        <div className="rounded-3xl glass-card overflow-hidden hover-lift">
-          <div className="p-5 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
-                <GraduationCap className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Recent Grades</h2>
-                <p className="text-xs text-muted-foreground">{stats.gradeAverage}% average</p>
-              </div>
-            </div>
-            <Link href="/grades" className="flex items-center gap-1 text-sm text-primary hover:underline group">
-              View All
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          <div className="p-5 space-y-2">
-            {recentGrades.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">No grades recorded</p>
-            ) : (
-              recentGrades.map((grade) => (
-                <div key={grade.id} className={cn('flex items-center justify-between p-3 rounded-xl border transition-all hover:scale-[1.02]', accentClass[childId])}>
-                  <div>
-                    <p className="font-medium text-foreground">{grade.subject}</p>
-                    {grade.assignment && <p className="text-xs text-muted-foreground">{grade.assignment}</p>}
-                  </div>
-                  <div className="text-right">
-                    <p className={cn('text-2xl font-bold', textGradient[childId])}>{grade.letterGrade}</p>
-                    <p className="text-xs text-muted-foreground">{grade.grade}%</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
         {/* Upcoming Events */}
         <div className="rounded-3xl glass-card overflow-hidden hover-lift">
           <div className="p-5 border-b border-border/50 flex items-center justify-between">
