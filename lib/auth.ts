@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { nextCookies } from 'better-auth/next-js';
 import { pool } from '@/lib/db';
 
 const DAY = 60 * 60 * 24;
@@ -54,4 +55,6 @@ export const auth = betterAuth({
         },
       }
     : {}),
+  // Must stay last: lets server actions (e.g. demo sign-in) set session cookies.
+  plugins: [nextCookies()],
 });
