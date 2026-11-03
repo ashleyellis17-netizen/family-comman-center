@@ -1,101 +1,62 @@
-import { ChildQuickCard } from '@/components/child-quick-card';
-import { WeekCalendar } from '@/components/week-calendar';
-import { TodayChores } from '@/components/today-chores';
-import {
-  TodayFamilyOverview,
-  CalendarHighlights,
-  SchoolProgress,
-  ApprovalQueuePreview,
-  GroceryQuickView,
-  TonightsDinner,
-  AllowanceGroundingAlerts,
-} from '@/components/dashboard-sections';
-import { Calendar, Sun, Moon, Heart } from 'lucide-react';
+import { and, asc, eq, gte, lte, ne } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { events, mealPlanEntries, pantryItems } from '@/lib/db/schema';
+import { requireActorPage } from '@/lib/household';
+import { getGroceryCounts } from '@/lib/groceries';
+import { addDaysToDateString, dateInTz, formatDateLabel, hourInTz, longDateLabel, timeToMinutes } from '@/lib/time';
+import { TodaySummary } from '@/components/today/today-summary';
 
-export default function Dashboard() {
-  const today = new Date();
-  const formattedDate = today.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+export const dynamic = 'force-dynamic';
 
-  const hour = today.getHours();
-  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+export default async function TodayPage() {
+  const actor = await requireActorPage();
+  const today = dateInTz(actor.timezone);
+  const weekEnd = addDaysToDateString(today, 6);
+  const hour = hourInTz(actor.timezone);
+
+  const [upcoming, dinners, lowPantry, counts] = await Promise.all([
+    db
+      .select()
+      .from(events)
+      .where(and(eq(events.householdId, actor.householdId), gte(events.date, today), lte(events.date, weekEnd)))
+      .orderBy(asc(events.date)),
+    db
+      .select()
+      .from(mealPlanEntries)
+      .where(
+        and(
+          eq(mealPlanEntries.householdId, actor.householdId),
+          eq(mealPlanEntries.date, today),
+          eq(mealPlanEntries.slot, 'dinner'),
+        ),
+      ),
+    db
+      .select({ id: pantryItems.id, name: pantryItems.name, status: pantryItems.status })
+      .from(pantryItems)
+      .where(and(eq(pantryItems.householdId, actor.householdId), ne(pantryItems.status, 'in_stock')))
+      .limit(6),
+    getGroceryCounts(actor.householdId),
+  ]);
+
+  const sorted = upcoming
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date) || timeToMinutes(a.time) - timeToMinutes(b.time));
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            {hour < 19 ? (
-              <Sun className="w-8 h-8 text-carson animate-wiggle" />
-            ) : (
-              <Moon className="w-8 h-8 text-alex animate-float" />
-            )}
-            <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{greeting}</span>
-          </div>
-          <h1 className="cozyla-heading text-foreground">Theveny Family</h1>
-          <p className="text-muted-foreground cozyla-text font-medium">Today&apos;s family overview</p>
-        </div>
-        <div className="flex items-center gap-4 bg-card rounded-2xl px-5 py-4 hover-lift shadow-lg shadow-primary/10 border border-border/50">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-jaxon flex items-center justify-center shadow-lg">
-            <Calendar className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Today</p>
-            <p className="text-lg font-extrabold text-foreground">{formattedDate}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Today's family overview */}
-      <section>
-        <TodayFamilyOverview />
-      </section>
-
-      {/* Kids cards */}
-      <section>
-        <div className="flex items-center gap-3 mb-5">
-          <Heart className="w-5 h-5 text-jaxon fill-jaxon/30" />
-          <h2 className="text-xl font-extrabold text-foreground">The Boys</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <ChildQuickCard childId="alex" />
-          <ChildQuickCard childId="jaxon" />
-          <ChildQuickCard childId="carson" />
-        </div>
-      </section>
-
-      {/* Calendar highlights + week calendar */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <CalendarHighlights />
-        </div>
-        <div className="lg:col-span-2">
-          <WeekCalendar />
-        </div>
-      </section>
-
-      {/* Chores + school progress */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TodayChores />
-        <SchoolProgress />
-      </section>
-
-      {/* Approvals + grocery + dinner */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ApprovalQueuePreview />
-        <GroceryQuickView />
-        <TonightsDinner />
-      </section>
-
-      {/* Allowance & grounding alerts */}
-      <section>
-        <AllowanceGroundingAlerts />
-      </section>
-    </div>
+    <TodaySummary
+      greeting={hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'}
+      name={actor.kind === 'user' ? actor.name.split(' ')[0] : actor.householdName}
+      dateLabel={longDateLabel(today)}
+      todayEvents={sorted
+        .filter((e) => e.date === today)
+        .map((e) => ({ id: e.id, title: e.title, time: e.time, category: e.category }))}
+      laterEvents={sorted
+        .filter((e) => e.date !== today)
+        .slice(0, 5)
+        .map((e) => ({ id: e.id, title: e.title, time: e.time, category: e.category, label: formatDateLabel(e.date, today) }))}
+      dinner={dinners.map((d) => d.title)}
+      lowPantry={lowPantry}
+      counts={counts}
+    />
   );
 }

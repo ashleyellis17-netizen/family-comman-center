@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Nunito, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
-import { Navigation } from '@/components/navigation'
+import { AppShell } from '@/components/app-shell'
+import { Toaster } from '@/components/ui/sonner'
 
 const nunito = Nunito({ 
   subsets: ["latin"],
@@ -67,19 +68,8 @@ export default function RootLayout({
           <div className="absolute inset-0 boho-dots opacity-50" />
         </div>
         
-        <div className="flex min-h-screen">
-          <Navigation />
-          <div className="flex flex-col flex-1 min-w-0">
-            <main className="flex-1 p-4 md:p-6 lg:p-8">
-              {children}
-            </main>
-
-            {/* Footer */}
-            <footer className="p-4 text-center text-sm text-muted-foreground/70 font-medium">
-              Theveny Family Command Center
-            </footer>
-          </div>
-        </div>
+        <AppShell>{children}</AppShell>
+        <Toaster position="bottom-center" richColors />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

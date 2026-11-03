@@ -1,7 +1,10 @@
+import { eq } from 'drizzle-orm';
 import { children } from '@/lib/mock-data';
-import { getEvents } from '@/app/actions/events';
-import { getAssignments } from '@/app/actions/school';
-import type { EventRow } from '@/lib/db/schema';
+import { getEventsForHousehold } from '@/app/actions/events';
+import { db } from '@/lib/db';
+import { households, type EventRow } from '@/lib/db/schema';
+
+let tzid = 'America/New_York';
 
 // Force dynamic so the feed always reflects the latest data
 export const dynamic = 'force-dynamic';
@@ -84,8 +87,8 @@ function buildEvent(opts: {
       endDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     }
     const dtEnd = `${dateToICS(endDate)}T${pad(endH)}${pad(parsed.m)}00`;
-    lines.push(`DTSTART;TZID=America/New_York:${dtStart}`);
-    lines.push(`DTEND;TZID=America/New_York:${dtEnd}`);
+    lines.push(`DTSTART;TZID=${tzid}:${dtStart}`);
+    lines.push(`DTEND;TZID=${tzid}:${dtEnd}`);
   } else {
     // All-day event
     lines.push(`DTSTART;VALUE=DATE:${dateToICS(date)}`);
@@ -101,7 +104,19 @@ function buildEvent(opts: {
   return lines.map(foldLine).join('\r\n');
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Calendar apps cannot sign in, so the feed is protected by a per-household
+  // secret token that a parent can rotate from Household Settings.
+  const token = new URL(request.url).searchParams.get('token');
+  if (!token || token.length < 20) return new Response('Not found', { status: 404 });
+  const [household] = await db
+    .select({ id: households.id, timezone: households.timezone })
+    .from(households)
+    .where(eq(households.calendarToken, token))
+    .limit(1);
+  if (!household) return new Response('Not found', { status: 404 });
+  tzid = household.timezone;
+
   const now = new Date();
   const dtstamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(
     now.getUTCDate(),
@@ -109,7 +124,7 @@ export async function GET() {
 
   const vevents: string[] = [];
 
-  const calendarEvents = await getEvents();
+  const calendarEvents = await getEventsForHousehold(household.id);
 
   // Family + school district calendar events
   for (const event of calendarEvents) {
@@ -119,26 +134,9 @@ export async function GET() {
       buildEvent({
         uid: `event-${event.id}@family-command-center`,
         date: event.date,
-        time: event.time,
+        time: event.time ?? undefined,
         title,
-        description: event.description,
-        dtstamp,
-      }),
-    );
-  }
-
-  // Assignment due dates (only those with a due date)
-  const assignments = await getAssignments();
-  for (const a of assignments) {
-    if (!a.dueDate) continue;
-    const child = children.find((c) => c.id === a.childId);
-    const who = child ? child.name : '';
-    vevents.push(
-      buildEvent({
-        uid: `assignment-${a.id}@family-command-center`,
-        date: a.dueDate,
-        title: `Due: ${a.title}${who ? ` (${who})` : ''}`,
-        description: `${a.subject ? a.subject + ' - ' : ''}Status: ${a.status}`,
+        description: event.description ?? undefined,
         dtstamp,
       }),
     );
@@ -151,7 +149,7 @@ export async function GET() {
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'X-WR-CALNAME:Family Command Center',
-    'X-WR-TIMEZONE:America/New_York',
+    `X-WR-TIMEZONE:${tzid}`,
     ...vevents,
     'END:VCALENDAR',
   ].join('\r\n');
