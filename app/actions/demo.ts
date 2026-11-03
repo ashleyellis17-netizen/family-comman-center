@@ -3,11 +3,11 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { events, groceryItems, householdMembers, households, user as userTable } from '@/lib/db/schema';
-import { DEMO_EMAIL, isDemoEnabled } from '@/lib/demo';
+import { DEMO_EMAIL, DEMO_HOUSEHOLD_NAME, isDemoEnabled } from '@/lib/demo';
 
 const DEMO_TIMEZONE = 'America/Chicago';
 
@@ -26,15 +26,26 @@ function localDate(offsetDays: number) {
 
 async function ensureDemoHousehold(userId: string) {
   const [member] = await db
-    .select({ id: householdMembers.id })
+    .select({ householdId: householdMembers.householdId, householdName: households.name })
     .from(householdMembers)
+    .innerJoin(households, eq(households.id, householdMembers.householdId))
     .where(eq(householdMembers.userId, userId));
-  if (member) return;
+  if (member) {
+    // The demo account must only ever reach its own isolated household.
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(householdMembers)
+      .where(eq(householdMembers.householdId, member.householdId));
+    if (member.householdName !== DEMO_HOUSEHOLD_NAME || count !== 1) {
+      throw new Error('Demo account is linked to a non-demo household');
+    }
+    return;
+  }
 
   await db.transaction(async (tx) => {
     const [h] = await tx
       .insert(households)
-      .values({ name: 'Demo Household', timezone: DEMO_TIMEZONE })
+      .values({ name: DEMO_HOUSEHOLD_NAME, timezone: DEMO_TIMEZONE })
       .returning({ id: households.id });
 
     await tx.insert(householdMembers).values({

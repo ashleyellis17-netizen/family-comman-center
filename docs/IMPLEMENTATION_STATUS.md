@@ -25,12 +25,21 @@ Legend: **Real** = backed by Neon, scoped to the signed-in household, verified i
 - [x] **Grocery Wishlist**: anyone can request; parents approve or decline; approval moves the item onto the grocery list exactly once.
 - [x] **Calendar**: events scoped to the household.
 - [x] **Today**: today's events, grocery count, pending wishlist requests, tonight's dinner, low pantry items, all from live data.
-- [ ] Weekly Meal Plan, Meal Ideas, Pantry & Staples: tables exist, UI still on sample data.
+- [x] **Meal Ideas (recipe library)**: add / edit / archive recipes with ingredients, filters (kid-friendly, budget, want-to-try, favorites, cuisine, main ingredient), per-person 1–5 star ratings, favorites, plan a recipe onto a date, send its ingredients to the grocery list.
+- [x] **Weekly Meal Plan**: week grid by slot, add a recipe or a custom meal, mark cooked, remove, "Shop this week's ingredients" (adds everything once per batch).
+- [x] **Pantry & Staples**: quantity, unit, category, use-by date, in stock / running low / out, always-keep staples, one tap to send low or out items to the grocery list.
+- [x] Voice entry on the grocery, recipe, and pantry inputs where the browser supports speech recognition; typing always works.
 - [ ] Chores, Behavior, Allowance, Rewards, Grounding, Earn Back, Approval Queue: sample data.
 - [ ] Kid and parent profile pages, Family Hub: sample data.
-- [ ] Google Accounts, Data Connection: not connected.
+- [ ] Google Accounts, Data Connection: **Not configured**. The pages say so plainly and show no fake connected accounts or sync times.
+
+## Access
+- The temporary "no sign-in required" bypass was removed. Every page requires a session or a paired display, and every API returns 401 without one.
+- Demo sign-in stays available only in development / preview, never in production.
 
 ## Verified this pass
-- Typecheck clean.
-- Browser: sign-up → onboarding → Today; add a grocery item on device A, it appears on device B; check-off on B updates A; sign-out redirects protected routes to sign-in.
-- QA test account and household were deleted afterwards.
+- Typecheck clean; production build compiles every route.
+- Signed-out requests: pages redirect to sign-in, food and grocery APIs return 401.
+- Session survives a full browser restart; sign-out revokes the session server-side (old cookie rejected).
+- Browser: sign-up → onboarding → Today; add recipe, rate it, send 3 ingredients to the grocery list (quantities and aisles parsed), plan it for tonight, see it on the meal plan; add a pantry staple marked running low.
+- Both QA test accounts and households were deleted afterwards (scoped by household name, in a single transaction).

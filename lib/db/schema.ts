@@ -6,6 +6,7 @@ import {
   serial,
   integer,
   numeric,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 
 // Mirrors the live Neon database. DDL is applied through migrations in
@@ -186,14 +187,58 @@ export const wishlistRequests = pgTable('wishlist_requests', {
 
 export type WishlistRow = typeof wishlistRequests.$inferSelect;
 
-// ----- Meals (read by Today; planner UI is a later phase) -----
+// ----- Food: recipes, ratings, meal plan, pantry -----
+
+export type RecipeIngredient = { name: string; quantity: string | null; unit: string | null };
+
+export const recipes = pgTable('recipes', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  title: text('title').notNull(),
+  sourceUrl: text('sourceUrl'),
+  sourceName: text('sourceName'),
+  externalId: text('externalId'),
+  imageUrl: text('imageUrl'),
+  servings: integer('servings'),
+  prepMinutes: integer('prepMinutes'),
+  cookMinutes: integer('cookMinutes'),
+  ingredients: jsonb('ingredients').$type<RecipeIngredient[]>().notNull().default([]),
+  instructions: text('instructions'),
+  tags: text('tags').array().notNull().default([]),
+  cuisine: text('cuisine'),
+  mainIngredient: text('mainIngredient'),
+  kidFriendly: boolean('kidFriendly').notNull().default(false),
+  budgetFriendly: boolean('budgetFriendly').notNull().default(false),
+  wantToTry: boolean('wantToTry').notNull().default(false),
+  favorite: boolean('favorite').notNull().default(false),
+  archived: boolean('archived').notNull().default(false),
+  createdBy: text('createdBy'),
+  updatedBy: text('updatedBy'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type RecipeRow = typeof recipes.$inferSelect;
+
+export const recipeRatings = pgTable('recipe_ratings', {
+  id: serial('id').primaryKey(),
+  householdId: integer('householdId').notNull(),
+  recipeId: integer('recipeId').notNull(),
+  /** actorRef: a user id, or `display:<id>` for a paired screen. Unique per recipe. */
+  userId: text('userId').notNull(),
+  raterName: text('raterName').notNull(),
+  stars: integer('stars').notNull(),
+  note: text('note'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
 
 export const mealPlanEntries = pgTable('meal_plan_entries', {
   id: serial('id').primaryKey(),
   householdId: integer('householdId').notNull(),
   date: text('date').notNull(),
   slot: text('slot').notNull(), // breakfast | lunch | dinner | snack
-  kind: text('kind').notNull(),
+  kind: text('kind').notNull().default('recipe'), // recipe | custom
   recipeId: integer('recipeId'),
   title: text('title').notNull(),
   servings: integer('servings'),

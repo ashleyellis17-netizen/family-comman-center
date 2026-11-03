@@ -6,7 +6,6 @@ import { and, asc, eq, isNull, lt, sql } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { displayDevices, householdMembers, households, user } from '@/lib/db/schema';
-import { OPEN_ACCESS } from '@/lib/access';
 import { DISPLAY_COOKIE, hashSecret } from '@/lib/tokens';
 import { PROFILE_COOKIE, findProfile } from '@/lib/family';
 
@@ -117,37 +116,8 @@ export const getActor = cache(async (): Promise<Actor | null> => {
   }
   const display = await getDisplayActor();
   if (display) return display;
-  return OPEN_ACCESS ? getGuestActor() : null;
+  return null;
 });
-
-async function getGuestActor(): Promise<UserActor | null> {
-  const [m] = await db
-    .select({
-      userId: householdMembers.userId,
-      displayName: householdMembers.displayName,
-      email: user.email,
-      householdId: households.id,
-      householdName: households.name,
-      timezone: households.timezone,
-    })
-    .from(householdMembers)
-    .innerJoin(households, eq(households.id, householdMembers.householdId))
-    .innerJoin(user, eq(user.id, householdMembers.userId))
-    .where(eq(householdMembers.role, 'parent'))
-    .orderBy(asc(households.id), asc(householdMembers.id))
-    .limit(1);
-  if (!m) return null;
-  return {
-    kind: 'user',
-    userId: m.userId,
-    email: m.email,
-    role: 'parent',
-    name: m.displayName,
-    householdId: m.householdId,
-    householdName: m.householdName,
-    timezone: m.timezone,
-  };
-}
 
 /** For server actions / route handlers: throws instead of redirecting. */
 export async function requireActor(): Promise<Actor> {

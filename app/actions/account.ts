@@ -17,6 +17,7 @@ import { getSessionUser, requireActor, requireParent } from '@/lib/household';
 import { PROFILE_COOKIE, findProfile } from '@/lib/family';
 import { DISPLAY_COOKIE, cookieSecurity, hashSecret, newHumanCode, newSecret, normalizeCode } from '@/lib/tokens';
 import { US_TIMEZONES } from '@/lib/time';
+import { DEMO_EMAIL } from '@/lib/demo';
 
 export type ActionResult<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
 
@@ -52,6 +53,7 @@ export async function createHousehold(input: { householdName: string; displayNam
 export async function joinHousehold(input: { code: string; displayName: string }): Promise<ActionResult> {
   const user = await getSessionUser();
   if (!user) return fail('Please sign in again.');
+  if (user.email.toLowerCase() === DEMO_EMAIL) return fail('The demo account cannot join a real household.');
   const displayName = nameSchema.safeParse(input.displayName);
   if (!displayName.success) return fail('Enter your name.');
   const code = normalizeCode(input.code);
